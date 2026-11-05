@@ -67,9 +67,11 @@ export class Kielipukki {
       idle: true, autoBlink: true,
       font: "Nunito, 'Trebuchet MS', system-ui, sans-serif",
       letterMs: 70,
+      sound: null,
       ...options,
     };
     const o = this.options;
+    this.sound = o.sound;  // a KielipukkiSound, or null for no sound
 
     // Give every id in the rig a unique prefix so several goats can share a page.
     const prefix = `kp${++instanceCount}-`;
@@ -191,33 +193,53 @@ export class Kielipukki {
   }
 
   /**
-   * Show a speech bubble and move the mouth in time with the text.
+   * Show a speech bubble, speak the text and move the mouth with it.
    * options: bubble (default true), hold (ms to keep the bubble after
-   * talking, default 1400; Infinity keeps it), audio (an URL or
-   * HTMLAudioElement to play; the mouth then follows its length),
-   * letterMs (time per letter when there is no audio).
+   * talking, default 1400; Infinity keeps it), audio (a URL or
+   * HTMLAudioElement to play instead of text-to-speech), speak (false to
+   * stay silent for this line), letterMs (time per letter when silent).
+   * Speech uses options.sound (a KielipukkiSound) when the goat has one.
    */
   async say(text, options = {}) {
     const { bubble = true, hold = 1400, audio = null } = options;
     let letterMs = options.letterMs || this.options.letterMs;
     const token = (this._sayToken = {});
+    const sound = this.sound;
+    sound?.stopSpeaking();
+    this._player?.pause();
     if (bubble) this._showBubble(text);
 
-    let player = null;
+    // Start the sound, if any. `playing` resolves when it ends.
+    let playing = null, finished = false, jumpTo = null;
     if (audio) {
-      player = typeof audio === 'string' ? new Audio(audio) : audio;
+      const player = typeof audio === 'string' ? new Audio(audio) : audio;
+      this._player = player;
+      if (sound) player.volume = Math.min(1, sound.volume * 1.6);
       try {
         await player.play();
         if (isFinite(player.duration) && player.duration > 0) letterMs = (player.duration * 1000) / text.length;
+        playing = new Promise(r => { player.onended = r; player.onpause = r; player.onerror = r; });
       } catch (err) {
         console.warn('Kielipukki: audio could not play', err);
       }
+    } else if (sound && options.speak !== false) {
+      const speech = sound.speak(text);
+      if (speech) {
+        playing = speech.done;
+        speech.onboundary = i => { jumpTo = i; };
+      }
     }
+    playing?.then(() => { finished = true; });
 
+    // Mouth: one shape per letter. While sound plays, follow its word
+    // positions where the browser reports them, and repeat until it ends.
     const letters = [...text.toLowerCase()];
     let last = null;
-    for (const ch of letters) {
+    for (let i = 0; i < letters.length; i++) {
       if (this._sayToken !== token) return;
+      if (playing && finished) break;
+      if (jumpTo != null) { i = Math.min(jumpTo, letters.length - 1); jumpTo = null; }
+      const ch = letters[i];
       let shape;
       if (VISEME[ch]) shape = VISEME[ch];
       else if (/[\s.,!?;:]/.test(ch)) shape = 'viseme-m';
@@ -225,6 +247,7 @@ export class Kielipukki {
       if (shape !== last) this._showVariant('mouth', shape);
       last = shape;
       await this.wait(/[.!?]/.test(ch) ? letterMs * 3 : letterMs);
+      if (playing && !finished && i === letters.length - 1) i = -1;
     }
     if (this._sayToken !== token) return;
     this._showVariant('mouth', this._emotionDef.mouth);
@@ -260,6 +283,7 @@ export class Kielipukki {
 
   /** A small happy jump. */
   async hop(height = 60) {
+    this._sfx('boing');
     await this._tween(this.goat, { squash: 0.9 }, 110, EASE.out);
     await this._tween(this.goat, { bob: -height * this.goat.s, squash: 1.04 }, 230, EASE.out);
     await this._tween(this.goat, { bob: 0, squash: 0.92 }, 200, EASE.in);
@@ -385,6 +409,7 @@ export class Kielipukki {
     const hand = this._freeHand(options.hand || 'right');
     if (!hand) return;
     this._setPose(hand, 'thumbs-up');
+    this._sfx('ding');
     await this._moveHand(hand, this._handPlace(hand, 'thumb'), 380, EASE.backOut);
     await this.wait(options.hold ?? 1200);
     await this.rest(hand.side);
@@ -474,12 +499,17 @@ export class Kielipukki {
   }
 
   destroy() {
+    this.sound?.stopSpeaking();
     cancelAnimationFrame(this._raf);
     clearTimeout(this._blinkTimer);
     this.svg.remove();
   }
 
   // ---------------------------------------------------------------- internals
+
+  _sfx(name, strength) {
+    this.sound?.play(name, strength);
+  }
 
   _showVariant(part, variant) {
     const node = this.parts[part];
@@ -528,6 +558,8 @@ export class Kielipukki {
   }
 
   _moveHand(hand, to, ms, ease = EASE.inOut) {
+    const dist = Math.hypot(to.x - hand.x, to.y - hand.y);
+    if (dist > 60) this._sfx('whoosh', Math.min(1, dist / 500));
     let rot = to.rot;
     while (rot - hand.rot > 180) rot -= 360;
     while (rot - hand.rot < -180) rot += 360;
@@ -580,12 +612,14 @@ export class Kielipukki {
   }
 
   _attach(prop, hand) {
+    this._sfx('grab');
     prop.holder = hand;
     hand.holding = prop;
     hand.slot.appendChild(prop.el);
   }
 
   _detach(prop, at) {
+    this._sfx('drop');
     prop.holder.holding = null;
     prop.holder = null;
     prop.x = at.x;
@@ -655,6 +689,7 @@ export class Kielipukki {
     apply();
     pop._apply = apply;
     this._tween(pop, { k: 1 }, 220, EASE.backOut);
+    this._sfx('pop');
     this._bubblePop = pop;
   }
 

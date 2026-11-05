@@ -31,6 +31,7 @@ const code = [
   unmodule(read('src/emotions.js')),
   unmodule(read('src/kielipukki.js')),
   unmodule(read('src/icons.js')),
+  unmodule(read('src/sound.js')),
   unmodule(script),
 ].join('\n');
 

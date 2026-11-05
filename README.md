@@ -24,6 +24,7 @@ Then open http://localhost:8000/demo/. The buttons run each action, and "Play sa
 | `src/kielipukki.js` | The controller that loads the rig and runs the actions |
 | `src/emotions.js` | Emotion presets (which eyes, mouth and brows each emotion uses) |
 | `src/icons.js` | Registers the vocabulary pictures as props |
+| `src/sound.js` | Finnish speech and sound effects |
 | `demo/index.html` | Demo page, word picker and sample lesson |
 | `tools/build-standalone.mjs` | Builds `dist/kielipukki.html`, the demo as one file that works without a server |
 | `tools/measure-icons.mjs` | Measures each picture's drawn area and stores it in `icons.json` |
@@ -62,6 +63,24 @@ Words with two pictures (käsi, jalka, mee pois) also get a second prop type nam
 
 Most pictures are Mulberry Symbols by Steve Lee, under CC BY-SA 4.0, which requires credit when you publish them. Three are custom artwork. See [assets/icons/LICENSE.md](assets/icons/LICENSE.md).
 
+## Sound
+
+`src/sound.js` adds speech and sound effects. Pass a `KielipukkiSound` when creating the goat:
+
+```js
+import { KielipukkiSound } from './src/sound.js';
+
+const sound = new KielipukkiSound({ rate: 0.9 });   // options: effects, speech, volume, lang, rate
+const goat = await createKielipukki(stage, { sound });
+await goat.say('Tämä on omena.');                  // spoken in Finnish, mouth follows the speech
+await goat.say('Tämä on omena.', { audio: 'audio/tama-on-omena.mp3' });   // a recording instead
+```
+
+- **Speech** uses the browser's built-in text-to-speech with a Finnish voice. Most copies of Chrome, Edge and Safari include one; Windows may need Finnish added under Settings > Time & language > Speech. With no Finnish voice, lines show in the bubble without sound. `sound.voices()` lists the Finnish voices; set `sound.voice` to choose one.
+- **Recordings** passed as `audio` play instead of speech, and the mouth moves until the recording ends. Use these where the built-in voice is not good enough.
+- **Sound effects** are generated in the browser, with no audio files: `pop` (speech bubble), `whoosh` (hand moves), `grab`, `drop`, `boing` (hop) and `ding` (thumbs up). Turn them off with `sound.effects = false`, or play one with `sound.play('ding')`.
+- Browsers play sound only after the viewer has clicked or tapped the page, so start a lesson from a button.
+
 ## Writing a lesson
 
 Every action returns a Promise, so a lesson is a sequence of `await`s:
@@ -96,7 +115,7 @@ The stage is 1200 x 700 units by default. "left" and "right" hands are from the 
 | `emote(name, ms)` | Show an emotion for `ms`, then go back to the previous one |
 | `blink()` | Blink once. Blinking also happens on its own every few seconds |
 | `lookAt(target)` | Move the eyes toward a point `{x, y}` or a prop id; `null` looks at the viewer |
-| `say(text, options)` | Show a speech bubble and move the mouth letter by letter. Options: `hold` (ms the bubble stays after talking, `Infinity` to keep it), `bubble: false`, `audio` (a URL or `<audio>` element; the mouth movement is stretched to the audio length), `letterMs` |
+| `say(text, options)` | Show a speech bubble, speak the line (see Sound) and move the mouth. Options: `hold` (ms the bubble stays after talking, `Infinity` to keep it), `bubble: false`, `audio` (a recording to play instead of speech), `speak: false`, `letterMs` |
 | `hideBubble()` | Remove the speech bubble |
 
 Emotions: `neutral`, `happy`, `veryHappy`, `surprised`, `confused`, `thinking`, `sad`, `wink`, `determined`.
