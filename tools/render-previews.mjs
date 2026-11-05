@@ -50,16 +50,16 @@ await shot(['viseme-a', 'viseme-e', 'viseme-o', 'viseme-u', 'viseme-m'].map(m =>
   frame({ eyes: 'open', mouth: m, brows: 'none', cheeks: 'off' }, m)).join(''), 'visemes.png', 5 * 214, 274);
 
 // Hands and props.
-const poses = ['open', 'point', 'grip', 'thumbs-up'];
+const poses = ['open', 'point', 'grip', 'palm-up', 'thumbs-up'];
 const props = [...rig.matchAll(/data-prop="([^"]+)"/g)].map(m => m[1]);
 const defs = rig.match(/<defs>[\s\S]*?<\/defs>/)[0];
 const handTpl = rig.match(/<g id="hand-template"[\s\S]*?(?=\s*<!-- Sample props)/)[0];
 const propLib = rig.match(/<g id="props-library"[\s\S]*<\/g>(?=\s*<\/svg>)/)[0];
 
 // Render each pose from a copy of the template with the other poses removed.
-let handHtml = '<svg xmlns="http://www.w3.org/2000/svg" width="660" height="340">' + defs;
+let handHtml = '<svg xmlns="http://www.w3.org/2000/svg" width="860" height="340">' + defs;
 poses.forEach((p, i) => {
-  const only = handTpl.replace('transform="translate(-200 -200)"', `transform="translate(${80 + i * 160} 80)"`)
+  const only = handTpl.replace('transform="translate(-200 -200)"', `transform="translate(${85 + i * 170} 80)"`)
     .replace(/id="hand-template"/, '')
     .replace(new RegExp(`<g data-pose="(?!${p}")[^"]+">[\\s\\S]*?\\n    </g>`, 'g'), '');
   handHtml += only;
@@ -69,6 +69,6 @@ props.forEach((p, i) => {
   handHtml += `<g transform="translate(${80 + i * 160} 250)">${m}</g>`;
 });
 handHtml += '</svg>';
-await shot(handHtml, 'hands.png', 660, 340);
+await shot(handHtml, 'hands.png', 860, 340);
 
 process.exit(0);

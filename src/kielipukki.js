@@ -36,12 +36,15 @@ const HAND_PLACES = {
   holdUp: { x: 560, y: 330, rot: -90 },
   wave:   { x: 540, y: 160, rot: -80 },
   thumb:  { x: 520, y: 430, rot: 0 },
+  present: { x: 575, y: 470, rot: -6 },
   self:   { x: 525, y: 360, rot: 180 },
   ask:    { x: 560, y: 450, rot: -25 },
   windUp: { x: 520, y: 40, rot: -70 },
   throw:  { x: 300, y: -10, rot: -150 },
 };
 const GRIP_ANCHOR = { x: 31, y: 0 };  // where a held prop's grip point sits, in hand units
+const PALM_ANCHOR = { x: 26, y: -28 }; // top of the palm in the palm-up pose; a prop's lowest point rests here
+const HOLDING_POSES = ['grip', 'palm-up'];
 const FINGERTIP = 100;                // distance from palm centre to fingertip, in hand units
 
 // Mouth shape for each letter when talking.
@@ -120,7 +123,7 @@ export class Kielipukki {
       const poses = {};
       node.querySelectorAll('[data-pose]').forEach(p => { poses[p.dataset.pose] = p; });
       const hand = {
-        side, node, poses, slot: node.querySelector('[data-slot="held"]'),
+        side, node, poses, slots: Object.fromEntries(HOLDING_POSES.map(n => [n, poses[n].querySelector('[data-slot="held"]')])),
         x: 0, y: 0, rot: 0, scale: this.options.handScale, pose: null, holding: null,
         phase: side === 'left' ? 0 : 1.7,
       };
@@ -173,6 +176,7 @@ export class Kielipukki {
     this._showVariant('mouth', e.mouth);
     this._showVariant('brows', e.brows || 'none');
     this._showVariant('cheeks', e.cheeks ? 'on' : 'off');
+    this._showVariant('jowls', 'off');
     const look = this._gazeFor(this._lookTarget) || { gx: e.gaze?.[0] || 0, gy: e.gaze?.[1] || 0 };
     return this._tween(this.goat, { earL: e.ears?.[0] || 0, earR: e.ears?.[1] || 0, tilt: e.tilt || 0, ...look }, ms);
   }
@@ -188,7 +192,7 @@ export class Kielipukki {
   /** Close the eyes briefly. Only has a visible effect on open eyes. */
   async blink() {
     const eyes = this._emotionDef.eyes;
-    if (eyes !== 'open' && eyes !== 'wide') return;
+    if (this._eating || (eyes !== 'open' && eyes !== 'wide')) return;
     this._showVariant('eyes', 'closed');
     await this.wait(110);
     if (this._emotionDef.eyes === eyes) this._showVariant('eyes', eyes);
@@ -385,6 +389,7 @@ export class Kielipukki {
       : this._resolvePoint(target);
     const gripWorld = { x: p.x + prop.grip[0] * prop.scale, y: p.y + prop.grip[1] * prop.scale };
     this.lookAt(p);
+    this._setPose(hand, 'grip');
     await this._moveHand(hand, this._handAt(hand, gripWorld, -90), options.ms ?? 550);
     this._detach(prop, p);
     this._setPose(hand, 'open');
@@ -393,11 +398,22 @@ export class Kielipukki {
     await this.rest(hand.side);
   }
 
-  /** Lift a held prop up beside the face to show it. */
+  /**
+   * Show a held prop resting on an open palm, to talk about it.
+   * options.grip: true keeps it in the fist and lifts it beside the face instead.
+   */
   async holdUp(options = {}) {
     const hand = options.hand ? this.hands[options.hand] : Object.values(this.hands).find(h => h.holding);
-    if (!hand) return;
-    await this._moveHand(hand, this._handPlace(hand, 'holdUp'), options.ms ?? 450, EASE.backOut);
+    if (!hand || !hand.holding) return;
+    if (options.grip) {
+      this._setPose(hand, 'grip');
+      await this._moveHand(hand, this._handPlace(hand, 'holdUp'), options.ms ?? 450, EASE.backOut);
+      return;
+    }
+    // Lift a little, open the hand under the prop, then present it.
+    await this._tween(hand, { y: hand.y - 30 * this.goat.s }, 140, EASE.out);
+    this._setPose(hand, 'palm-up');
+    await this._moveHand(hand, this._handPlace(hand, 'present'), options.ms ?? 420, EASE.backOut);
   }
 
   /** Wave hello or goodbye. Uses a free hand; does nothing if both hands are full. */
@@ -495,6 +511,7 @@ export class Kielipukki {
     const prop = this._prop(id);
     if (prop.holder) prop.holder.holding = null;
     prop.el.remove();
+    prop.mask?.remove();
     delete this.props[id];
   }
 
@@ -554,6 +571,111 @@ export class Kielipukki {
   }
 
   /**
+   * Eat a prop: bring it to the mouth on the palm, take three bites, chew,
+   * swallow and say "Nam nam!". The prop is removed. options.say: what he
+   * says afterwards (false for nothing).
+   */
+  async eat(id, { hand: side, say = 'Nam nam!' } = {}) {
+    const prop = this._prop(id);
+    if (!prop.holder) await this.pickUp(id, { hand: side });
+    const hand = prop.holder;
+    if (!hand) return;
+    this._eating = true;
+    const s = this.goat.s, dir = hand.side === 'right' ? 1 : -1;
+    const half = prop.bottomOffset * prop.scale;
+    // Hold it beside the mouth, its near edge just over the mouth.
+    const mouth = this._g(256, 378);
+    this._setPose(hand, 'palm-up');
+    await this._moveHand(hand, this._handForPalm(hand, prop, { x: mouth.x + dir * (half + 46 * s), y: mouth.y + 22 * s }, -6), 450);
+    this.lookAt(prop.id, { ms: 150 });
+    this._showVariant('eyes', 'wide');
+    this._showVariant('brows', 'raised');
+    // Bite marks are cut out of the prop with a mask, from the side facing the mouth.
+    const mask = this._biteMask(prop);
+    const h = prop.bottomOffset;  // prop units
+    const bites = [[-0.55, -0.15, 0.42], [-0.4, 0.35, 0.5], [0.05, 0, 0.95]];
+    for (let i = 0; i < bites.length; i++) {
+      this._showVariant('mouth', 'chomp');
+      await this._tween(this.goat, { tilt: dir * 5 }, 160, EASE.out);
+      await this.wait(90);
+      const [bx, by, r] = bites[i];
+      this._addBite(mask, bx * h * dir, by * h, r * h);   // bx < 0 is the side nearest the mouth
+      this._showVariant('mouth', 'chew-a');
+      this._sfx('chomp');
+      this._crumbs(this._heldCentre(prop), dir, prop.scale);
+      this._tween(this.goat, { tilt: 0, squash: 0.97 }, 120, EASE.out).then(() => this._tween(this.goat, { squash: 1 }, 120));
+      await this.wait(260);
+    }
+    this.removeProp(id);
+    this._setPose(hand, 'open');
+    this.rest(hand.side);
+    this.lookAt(null);
+    // Chew with full cheeks.
+    this._showVariant('eyes', 'happy');
+    this._showVariant('brows', 'none');
+    this._showVariant('jowls', 'on');
+    for (let i = 0; i < 6; i++) {
+      this._showVariant('mouth', i % 2 ? 'chew-b' : 'chew-a');
+      this._sfx('munch', 0.8);
+      await this._tween(this.goat, { squash: i % 2 ? 1 : 0.975, tilt: i % 2 ? 2 : -2 }, 150);
+    }
+    // Swallow.
+    this._showVariant('jowls', 'off');
+    this._showVariant('mouth', 'viseme-m');
+    this._sfx('gulp');
+    await this._tween(this.goat, { bob: 10 * s, tilt: 0, squash: 1 }, 140, EASE.out);
+    await this._tween(this.goat, { bob: 0 }, 180);
+    this._showVariant('mouth', 'lick');
+    await this.wait(550);
+    this._eating = false;
+    await this.setEmotion('veryHappy', { ms: 150 });
+    if (say) await this.say(say, { hold: 300 });
+  }
+
+  _biteMask(prop) {
+    const id = `${this._prefix}bite-${prop.id}-${Math.random().toString(36).slice(2, 7)}`;
+    const mask = el('mask', { id, maskUnits: 'userSpaceOnUse', x: -400, y: -400, width: 800, height: 800 });
+    mask.appendChild(el('rect', { x: -400, y: -400, width: 800, height: 800, fill: '#fff' }));
+    this.svg.querySelector('defs').appendChild(mask);
+    prop.el.firstChild.setAttribute('mask', `url(#${id})`);
+    prop.mask = mask;
+    return mask;
+  }
+
+  // Cut one bite (a circle with two tooth notches on its rim) out of the prop.
+  _addBite(mask, x, y, r) {
+    const g = el('g', { fill: '#000' });
+    g.appendChild(el('circle', { cx: x, cy: y, r }));
+    for (const a of [-0.5, 0.5]) {
+      const ang = Math.atan2(-y, -x) + a;   // notches on the inner side of the bite
+      g.appendChild(el('circle', { cx: x + Math.cos(ang) * r, cy: y + Math.sin(ang) * r, r: r * 0.28 }));
+    }
+    mask.appendChild(g);
+  }
+
+  // A few crumbs that fall from a bite.
+  _crumbs(at, dir, scale) {
+    for (let i = 0; i < 5; i++) {
+      const c = el('circle', { r: 3 + Math.random() * 4, fill: '#fff', stroke: '#111', 'stroke-width': 3 });
+      this.layers.foreground.appendChild(c);
+      const p = { x: at.x - dir * 30 * scale, y: at.y, rot: 0 };
+      const vx = -dir * (20 + Math.random() * 60), up = 20 + Math.random() * 40, fall = 120 + Math.random() * 80;
+      const place = () => c.setAttribute('transform', `translate(${p.x} ${p.y})`);
+      place();
+      const t0 = performance.now(), dur = 600;
+      const step = now => {
+        const t = Math.min(1, (now - t0) / dur);
+        p.x = at.x - dir * 30 * scale + vx * t;
+        p.y = at.y - up * 4 * t * (1 - t) + fall * t * t;
+        place();
+        c.setAttribute('opacity', 1 - t * t);
+        if (t < 1) requestAnimationFrame(step); else c.remove();
+      };
+      requestAnimationFrame(step);
+    }
+  }
+
+  /**
    * Throw a prop over his shoulder and off the stage, then remove it.
    * If the prop is not held, he picks it up first.
    */
@@ -570,8 +692,7 @@ export class Kielipukki {
     const swing = this._moveHand(hand, this._handPlace(hand, 'throw'), 220, EASE.in);
     await this.wait(120);
     // Let go: the prop keeps its stage position and flies on by itself.
-    const anchor = this._handPoint(hand, GRIP_ANCHOR.x, GRIP_ANCHOR.y);
-    const start = { x: anchor.x - prop.grip[0] * prop.scale, y: anchor.y - prop.grip[1] * prop.scale };
+    const start = this._heldCentre(prop);
     this._detach(prop, start, { sound: false });
     this._setPose(hand, 'open');
     const away = hand.side === 'right' ? -1 : 1;  // over the opposite shoulder
@@ -721,7 +842,7 @@ export class Kielipukki {
     const right = !asking || asking.id === prop.id;
     const o = asking?.options || {};
     const wanted = asking && this.props[asking.id];
-    await this._moveHand(hand, this._handPlace(hand, 'holdUp'), 400, EASE.backOut);
+    await this.holdUp({ hand: hand.side, ms: 380 });
     this.lookAt(prop.id);
     if (right) {
       await this.setEmotion('veryHappy');
@@ -734,12 +855,13 @@ export class Kielipukki {
       await this.say(wrong, { hold: 300 });
       await this.shake();
     }
-    // onReceive decides whether he puts the prop back or throws it away.
+    // onReceive decides whether he puts the prop back, eats it or throws it away.
     const action = this.onReceive?.(prop, { asked: asking?.id ?? null, right }) || 'return';
-    if (action === 'throw') {
+    if (action === 'eat' || action === 'throw') {
       const id = prop.id;
-      await this.throwAway(id, { hand: hand.side });
-      await this.onThrown?.(id, home);
+      if (action === 'eat') await this.eat(id, { hand: hand.side });
+      else await this.throwAway(id, { hand: hand.side });
+      await this.onGone?.(id, home, action);
     } else {
       await this.putDown(home, { hand: hand.side });
     }
@@ -777,9 +899,13 @@ export class Kielipukki {
 
   _setPose(hand, pose) {
     if (hand.pose === pose) return;
-    if (hand.holding && pose !== 'grip') throw new Error('Put the prop down before changing this hand\'s pose');
+    if (hand.holding && !HOLDING_POSES.includes(pose)) throw new Error('Put the prop down before changing this hand\'s pose');
     for (const [name, node] of Object.entries(hand.poses)) node.style.display = name === pose ? '' : 'none';
     hand.pose = pose;
+    if (hand.holding) {
+      hand.slots[pose].appendChild(hand.holding.el);
+      this._placeProp(hand.holding);
+    }
   }
 
   // Goat units to stage units (ignores tilt and bob).
@@ -846,10 +972,27 @@ export class Kielipukki {
     if (target === 'self') return this._g(256, 300);
     if (typeof target === 'string') {
       const prop = this._prop(target);
-      if (prop.holder) return this._handPoint(prop.holder, GRIP_ANCHOR.x, GRIP_ANCHOR.y);
+      if (prop.holder) return this._heldCentre(prop);
       return { x: prop.x, y: prop.y };
     }
     return target;
+  }
+
+  // Stage position of a held prop's centre.
+  _heldCentre(prop) {
+    const h = prop.holder;
+    if (h.pose === 'palm-up') {
+      const a = this._handPoint(h, PALM_ANCHOR.x, PALM_ANCHOR.y);
+      return { x: a.x, y: a.y - prop.bottomOffset * prop.scale };
+    }
+    const a = this._handPoint(h, GRIP_ANCHOR.x, GRIP_ANCHOR.y);
+    return { x: a.x - prop.grip[0] * prop.scale, y: a.y - prop.grip[1] * prop.scale };
+  }
+
+  // Hand position (palm-up pose) that puts a held prop's centre on a stage point.
+  _handForPalm(hand, prop, centre, rot) {
+    const off = this._handPoint(hand, PALM_ANCHOR.x, PALM_ANCHOR.y, { x: 0, y: 0, rot });
+    return { x: centre.x - off.x, y: centre.y + prop.bottomOffset * prop.scale - off.y, rot };
   }
 
   _gazeFor(target) {
@@ -866,7 +1009,7 @@ export class Kielipukki {
     this._sfx('grab');
     prop.holder = hand;
     hand.holding = prop;
-    hand.slot.appendChild(prop.el);
+    hand.slots[HOLDING_POSES.includes(hand.pose) ? hand.pose : 'grip'].appendChild(prop.el);
   }
 
   _detach(prop, at, { sound = true } = {}) {
@@ -886,8 +1029,10 @@ export class Kielipukki {
       const flip = h.side === 'right' ? 1 : -1;
       const actual = h.side === 'right' ? h.rot : 180 - h.rot;
       const k = prop.scale / (this.goat.s * h.scale);
-      prop.el.setAttribute('transform',
-        `translate(${GRIP_ANCHOR.x} ${GRIP_ANCHOR.y}) scale(1 ${flip}) rotate(${-actual}) scale(${k}) translate(${-prop.grip[0]} ${-prop.grip[1]})`);
+      const upright = `scale(1 ${flip}) rotate(${-actual}) scale(${k})`;
+      prop.el.setAttribute('transform', h.pose === 'palm-up'
+        ? `${upright} translate(0 ${-prop.bottomOffset})`   // the palm slot is already at PALM_ANCHOR
+        : `translate(${GRIP_ANCHOR.x} ${GRIP_ANCHOR.y}) ${upright} translate(${-prop.grip[0]} ${-prop.grip[1]})`);
     } else {
       prop.el.setAttribute('transform', `translate(${prop.x} ${prop.y}) rotate(${prop.rot || 0}) scale(${prop.scale})`);
     }

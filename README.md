@@ -83,15 +83,16 @@ await goat.askFor('vesi', { ask: 'Anna mulle vettä!' });
 Two hooks change what he does with a prop he has been given:
 
 ```js
-// Return 'throw' to have him throw it over his shoulder instead of putting it back.
+// Return 'eat' to have him eat it, 'throw' to throw it over his shoulder,
+// or 'return' to put it back.
 goat.onReceive = (prop, { asked, right }) => 'return';
-// Called after a throw, with the prop id and where it came from.
-goat.onThrown = async (id, from) => {
+// Called after he eats or throws a prop, with its id and where it came from.
+goat.onGone = async (id, from, action) => {
   await goat.dropIn('pallo', { x: from.x, bottom: 592 });   // a new prop falls from above
 };
 ```
 
-The demo's "Anna mulle" game uses these: the second time something is given to him in a game, he throws it away and a random new word falls into its place.
+The demo's "Anna mulle" game uses these: the second time something is given to him in a game, he eats it (goats eat everything) and a random new word falls into its place.
 
 ## Sound
 
@@ -108,7 +109,7 @@ await goat.say('Tämä on omena.', { audio: 'audio/tama-on-omena.mp3' });   // a
 
 - **Speech** uses the browser's built-in text-to-speech with a Finnish voice. Most copies of Chrome, Edge and Safari include one; Windows may need Finnish added under Settings > Time & language > Speech. With no Finnish voice, lines show in the bubble without sound. `sound.voices()` lists the Finnish voices; set `sound.voice` to choose one.
 - **Recordings** passed as `audio` play instead of speech, and the mouth moves until the recording ends. Use these where the built-in voice is not good enough.
-- **Sound effects** are generated in the browser, with no audio files: `pop` (speech bubble), `whoosh` (hand moves), `grab`, `drop`, `boing` (hop) and `ding` (thumbs up). Turn them off with `sound.effects = false`, or play one with `sound.play('ding')`.
+- **Sound effects** are generated in the browser, with no audio files: `pop` (speech bubble), `whoosh` (hand moves), `grab`, `drop`, `boing` (hop), `ding` (thumbs up), and for eating `chomp` (a bite), `munch` (chewing) and `gulp` (swallowing). Turn them off with `sound.effects = false`, or play one with `sound.play('ding')`.
 - Browsers play sound only after the viewer has clicked or tapped the page, so start a lesson from a button.
 
 ## Writing a lesson
@@ -168,7 +169,7 @@ Emotions: `neutral`, `happy`, `veryHappy`, `surprised`, `confused`, `thinking`, 
 | `pointAt(target, options)` | Point at a point `{x, y}`, a prop id, or `'self'` (points at its own face, for "minä"). Options: `hand`, `hold` (ms before the hand goes back to rest) |
 | `pickUp(propId, options)` | Move a hand to the prop, grip it and lift it. Option: `hand` |
 | `putDown({x, y}, options)` | Put a held prop down with its centre at that point, or use `{x, bottom}` to stand it on a surface. Options: `hand` or `prop` |
-| `holdUp()` | Lift a held prop beside the face to show it |
+| `holdUp(options)` | Show a held prop resting on his open palm, to talk about it. `{grip: true}` lifts it in the fist beside the face instead |
 | `wave()` | Wave with a free hand |
 | `thumbsUp()` | Thumbs up with a free hand |
 | `rest(side)` | Move one hand or both back to rest. Held props stay held |
@@ -180,6 +181,7 @@ Emotions: `neutral`, `happy`, `veryHappy`, `surprised`, `confused`, `thinking`, 
 | `enableDragging(on, {reach})` | Let the viewer drag props to the goat. `reach` is how close counts as near, in stage units |
 | `askFor(id, options)` | Ask for a prop ("Anna mulle ...!") and wait until the viewer drags it to him |
 | `cancelAsk()` | Stop waiting for the prop asked for |
+| `eat(id, {say})` | Eat a prop: three bites with bite marks and crumbs, chewing with full cheeks, a gulp, a lick and "Nam nam!" (`say` changes or turns off the last line). The prop is removed |
 | `throwAway(id)` | Throw a prop over his shoulder off the stage, and remove it |
 | `dropIn(type, {id, x, y, bottom})` | Add a prop that falls from above and bounces as it lands |
 | `wait(ms)` | Pause in a lesson script |
@@ -194,10 +196,11 @@ Emotions: `neutral`, `happy`, `veryHappy`, `surprised`, `confused`, `thinking`, 
 
 `assets/goat/rig.svg` is one SVG file that can be opened and edited in any vector editor (Inkscape, Illustrator, Figma). The controller finds parts by their attributes, not by their position in the file, so parts can be redrawn as long as the attributes stay:
 
-- `[data-part]` is a part that moves or changes: `horns`, `ear-l`, `ear-r`, `beard`, `head`, `cheeks`, `brows`, `eyes`, `nose`, `mouth`.
+- `[data-part]` is a part that moves or changes: `horns`, `ear-l`, `ear-r`, `beard`, `head`, `jowls`, `cheeks`, `brows`, `eyes`, `nose`, `mouth`.
 - `[data-variant]` is one drawing of a part. The controller shows one variant of each part at a time. To add a new mouth shape, add a `<g data-variant="...">` inside the mouth part and refer to it from an emotion in `src/emotions.js`.
+- The `jowls` part shows puffed-out cheeks while he chews. The mouth part includes eating shapes: `chomp`, `chew-a`, `chew-b` and `lick`.
 - `[data-gaze]` marks eye variants that move toward what the goat looks at.
-- `#hand-template` holds one hand with every pose (`[data-pose]`), with the fingers pointing right. The controller copies it for each hand and mirrors the left one. In the `grip` pose, a held prop is placed in `[data-slot="held"]`, between the palm and the curled fingers.
+- `#hand-template` holds one hand with every pose (`[data-pose]`: open, point, grip, palm-up, thumbs-up), with the fingers pointing right. The controller copies it for each hand and mirrors the left one. A held prop is placed in the pose's `[data-slot="held"]`: in `grip` it sits between the palm and the curled fingers, and in `palm-up` it rests on top of the palm.
 - `#props-library` holds the sample props. Each has `data-grip="x y"`, the point the hand holds it by.
 
 The head uses a 512 x 600 box, the same size as the reference image. Hands and props use the same units.

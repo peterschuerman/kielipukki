@@ -66,7 +66,7 @@ export class KielipukkiSound {
     globalThis.speechSynthesis?.cancel();
   }
 
-  /** Play a sound effect: pop, whoosh, grab, drop, boing, ding. strength 0-1 scales it. */
+  /** Play a sound effect: pop, whoosh, grab, drop, boing, ding, chomp, munch, gulp. strength 0-1 scales it. */
   play(name, strength = 1) {
     if (!this.effects || this.volume <= 0) return;
     const ctx = this._audio();
@@ -157,6 +157,22 @@ const EFFECTS = {
     o.connect(env(ctx, t, 0.3 * v, 0.01, 0.4));
     o.start(t); lfo.start(t);
     o.stop(t + 0.5); lfo.stop(t + 0.5);
+  },
+  // A bite: a sharp crunch with a low thump of the jaw.
+  chomp: (ctx, t, v) => {
+    noise(ctx, t, { from: 2400, to: 900, dur: 0.1, peak: 0.5 * v, q: 1.2, attack: 0.002 });
+    noise(ctx, t + 0.03, { from: 3500, dur: 0.05, peak: 0.25 * v, filter: 'highpass', attack: 0.002 });
+    tone(ctx, t, { type: 'triangle', from: 150, to: 70, dur: 0.09, peak: 0.4 * v, attack: 0.002 });
+  },
+  // Chewing: soft, wet and low.
+  munch: (ctx, t, v) => {
+    noise(ctx, t, { from: 800, to: 380, dur: 0.12, peak: 0.32 * v, q: 2, attack: 0.012 });
+    noise(ctx, t + 0.05, { from: 2800, dur: 0.03, peak: 0.07 * v, filter: 'highpass', attack: 0.003 });
+  },
+  // Swallowing: two quick falling blips.
+  gulp: (ctx, t, v) => {
+    tone(ctx, t, { from: 440, to: 150, dur: 0.13, peak: 0.45 * v, attack: 0.004 });
+    tone(ctx, t + 0.11, { from: 300, to: 110, dur: 0.12, peak: 0.3 * v, attack: 0.004 });
   },
   // Praise (thumbs up).
   ding: (ctx, t, v) => {

@@ -12,7 +12,7 @@
       [data-variant] ....... one drawing of a part; the controller shows one
                              variant per part and hides the rest
       #hand-template ....... one hand with every pose; the controller copies it
-      [data-pose] .......... a hand pose (open, point, grip, thumbs-up)
+      [data-pose] .......... a hand pose (open, point, grip, palm-up, thumbs-up)
       #props-library ....... sample props; each has data-grip="x y", the point
                              a hand holds it by,
                              and data-bottom its lowest point below the centre
@@ -44,6 +44,12 @@
       <use href="#hs-cuff"/>
       <ellipse cx="0" cy="0" rx="36" ry="32"/>
     </g>
+    <g id="hs-palm-up">
+      <use href="#hs-cuff"/>
+      <path d="M-24 -6 C -10 -18, 40 -20, 62 -14 C 78 -10, 80 8, 64 13 C 40 21, -6 22, -24 14 Z"/>
+      <ellipse cx="66" cy="-12" rx="12" ry="14"/>
+      <ellipse cx="4" cy="-20" rx="17" ry="9" transform="rotate(-12 4 -20)"/>
+    </g>
     <g id="hs-thumbs-up">
       <use href="#hs-cuff"/>
       <ellipse cx="0" cy="6" rx="34" ry="30"/>
@@ -52,6 +58,9 @@
     </g>
     <clipPath id="clip-horn-l">
       <path d="M146 140 C 132 92, 110 50, 78 18 C 74 12, 80 8, 86 10 C 160 30, 214 66, 236 128 Z"/>
+    </clipPath>
+    <clipPath id="clip-chomp">
+      <path d="M190 338 Q256 326 322 338 C 330 428, 182 428, 190 338 Z"/>
     </clipPath>
     <clipPath id="clip-grin">
       <path d="M180 348 Q256 360 332 348 C 326 428, 186 428, 180 348 Z"/>
@@ -94,6 +103,16 @@
       <!-- Tuft: white fill covers the head outline, then its own outline on top. -->
       <path d="M214 140 L214 128 C 210 100, 215 78, 225 62 C 235 70, 240 78, 244 84 C 246 66, 250 52, 257 44 C 264 54, 268 66, 270 84 C 276 76, 284 68, 296 62 C 304 80, 304 104, 300 128 L300 140 Z" fill="#fff"/>
       <path d="M214 124 L214 128 C 210 100, 215 78, 225 62 C 235 70, 240 78, 244 84 C 246 66, 250 52, 257 44 C 264 54, 268 66, 270 84 C 276 76, 284 68, 296 62 C 304 80, 304 104, 300 128" fill="none" stroke="#111" stroke-width="18" stroke-linejoin="round" stroke-linecap="round"/>
+    </g>
+
+    <!-- Puffed-out cheeks while chewing. Drawn over the head outline so they bulge past it. -->
+    <g data-part="jowls" fill="#fff" stroke="#111" stroke-width="16">
+      <g data-variant="off"/>
+      <g data-variant="on">
+        <ellipse cx="150" cy="378" rx="46" ry="38"/>
+        <ellipse cx="362" cy="378" rx="46" ry="38"/>
+        <path d="M150 360 Q164 372 156 390 M362 360 Q348 372 356 390" fill="none" stroke-width="7" stroke-linecap="round" opacity="0.35"/>
+      </g>
     </g>
 
     <g data-part="cheeks">
@@ -188,6 +207,21 @@
       <g data-variant="viseme-u">
         <ellipse cx="256" cy="372" rx="13" ry="15" fill="#111"/>
       </g>
+      <!-- Eating: wide open with the lower front teeth showing, two chewing shapes, and licking the lips. -->
+      <g data-variant="chomp">
+        <path d="M190 338 Q256 326 322 338 C 330 428, 182 428, 190 338 Z" fill="#111" stroke="#111" stroke-width="12" stroke-linejoin="round"/>
+        <g clip-path="url(#clip-chomp)">
+          <ellipse cx="256" cy="420" rx="50" ry="26" fill="#ef7f95"/>
+          <rect x="236" y="396" width="17" height="18" rx="5" fill="#fff"/>
+          <rect x="259" y="396" width="17" height="18" rx="5" fill="#fff"/>
+        </g>
+      </g>
+      <g data-variant="chew-a"><path d="M206 372 Q230 388 256 372 Q282 388 306 372" fill="none" stroke="#111" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/></g>
+      <g data-variant="chew-b"><path d="M200 366 Q226 350 250 366 Q274 382 300 360" fill="none" stroke="#111" stroke-width="18" stroke-linecap="round" stroke-linejoin="round"/></g>
+      <g data-variant="lick">
+        <path d="M296 366 C 318 360, 330 384, 312 394 C 300 400, 288 388, 292 374 Z" fill="#ef7f95" stroke="#111" stroke-width="8" stroke-linejoin="round"/>
+        <path d="M184 340 C 196 410, 316 410, 328 340" fill="none" stroke="#111" stroke-width="20" stroke-linecap="round"/>
+      </g>
       <g data-variant="viseme-m"><path d="M222 364 Q256 372 290 364" fill="none" stroke="#111" stroke-width="18" stroke-linecap="round"/></g>
     </g>
   </g>
@@ -224,6 +258,17 @@
         <circle cx="32" cy="-24" r="15"/>
         <ellipse cx="10" cy="-36" rx="20" ry="12" transform="rotate(-15 10 -36)"/>
       </g>
+    </g>
+    <!-- Palm up, fingers pointing toward +x. A held prop rests on top of the palm,
+         its lowest point on the slot's origin. -->
+    <g data-pose="palm-up">
+      <use href="#hs-palm-up" fill="#111" stroke="#111" stroke-width="20" stroke-linejoin="round"/>
+      <use href="#hs-palm-up" fill="#fff"/>
+      <g fill="none" stroke="#111" stroke-width="8" stroke-linecap="round">
+        <path d="M-22 -16 Q-28 2 -22 20"/>
+        <path d="M20 8 Q40 12 58 6"/>
+      </g>
+      <g data-slot="held" transform="translate(26 -28)"/>
     </g>
     <g data-pose="thumbs-up">
       <use href="#hs-thumbs-up" fill="#111" stroke="#111" stroke-width="20" stroke-linejoin="round"/>
