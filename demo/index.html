@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kielipukki demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #f6f3ec; --panel: #fff; --ink: #111; --muted: #666; --accent: #3e63dd; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: Nunito, system-ui, sans-serif; }
+  main { max-width: 1200px; margin: 0 auto; padding: 16px; }
+  h1 { font-size: 26px; margin: 4px 0 12px; }
+  #stage { background: #fff; border: 3px solid var(--ink); border-radius: 18px; overflow: hidden; }
+  .controls { display: grid; gap: 10px; margin-top: 14px; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .row > span { width: 90px; font-weight: 800; color: var(--muted); font-size: 14px; }
+  button { font: inherit; font-weight: 700; font-size: 15px; padding: 7px 12px; border: 2px solid var(--ink);
+           border-radius: 10px; background: var(--panel); cursor: pointer; }
+  button:hover { background: #eef2ff; }
+  button.primary { background: var(--accent); color: #fff; }
+  @media (max-width: 600px) { .row > span { width: 100%; } }
+</style>
+</head>
+<body>
+<main>
+  <h1>Kielipukki</h1>
+  <div id="stage"></div>
+  <div class="controls">
+    <div class="row"><span>Lesson</span><button class="primary" id="lesson">Play sample lesson</button></div>
+    <div class="row" id="emotions"><span>Emotion</span></div>
+    <div class="row"><span>Head</span>
+      <button data-do="blink">Blink</button><button data-do="nod">Nod</button><button data-do="shake">Shake</button>
+      <button data-do="hop">Hop</button><button data-do="say">Say</button>
+    </div>
+    <div class="row" id="point"><span>Point at</span></div>
+    <div class="row" id="pick"><span>Pick up</span></div>
+    <div class="row"><span>Hands</span>
+      <button data-do="holdUp">Hold up</button><button data-do="putDown">Put down</button>
+      <button data-do="wave">Wave</button><button data-do="thumbsUp">Thumbs up</button><button data-do="rest">Rest</button>
+    </div>
+  </div>
+</main>
+<script type="module">
+  import { createKielipukki } from '../src/kielipukki.js';
+  import { EMOTIONS } from '../src/emotions.js';
+
+  const goat = await createKielipukki(document.getElementById('stage'));
+  window.goat = goat; // for trying things in the browser console
+
+  // Background: a table for the props.
+  goat.layers.background.innerHTML = `
+    <rect x="0" y="0" width="1200" height="700" fill="#fff"/>
+    <rect x="560" y="596" width="620" height="22" rx="11" fill="#c9a77c" stroke="#111" stroke-width="7"/>
+    <path d="M600 618 L600 700 M1140 618 L1140 700" stroke="#111" stroke-width="10"/>`;
+
+  // Props sit on the table: y is the prop's centre.
+  const spots = { omena: ['apple', 660], kirja: ['book', 805], kuppi: ['cup', 950], avain: ['key', 1085] };
+  const home = {};
+  for (const [id, [type, x]] of Object.entries(spots)) {
+    const y = { apple: 534, book: 538, cup: 534, key: 574 }[type];
+    goat.addProp(type, { id, x, y });
+    home[id] = { x, y };
+  }
+
+  const busy = fn => async () => { try { await fn(); } catch (e) { console.error(e); } };
+  const row = (id, items, make) => {
+    const r = document.getElementById(id);
+    for (const item of items) {
+      const b = document.createElement('button');
+      b.textContent = item;
+      b.onclick = busy(() => make(item));
+      r.appendChild(b);
+    }
+  };
+  row('emotions', Object.keys(EMOTIONS), name => goat.setEmotion(name));
+  row('point', [...Object.keys(spots), 'self'], id => goat.pointAt(id, { hold: 1500 }));
+  row('pick', Object.keys(spots), id => goat.pickUp(id));
+
+  const held = () => Object.values(goat.hands).find(h => h.holding)?.holding;
+  const actions = {
+    blink: () => goat.blink(),
+    nod: () => goat.nod(),
+    shake: () => goat.shake(),
+    hop: () => goat.hop(),
+    say: () => goat.say('Hei! Minä olen Kielipukki. Opitaan suomea yhdessä!'),
+    holdUp: () => goat.holdUp(),
+    putDown: () => { const p = held(); return p && goat.putDown(home[p.id], { prop: p.id }); },
+    wave: () => goat.wave(),
+    thumbsUp: () => goat.thumbsUp(),
+    rest: () => goat.rest(),
+  };
+  document.querySelectorAll('[data-do]').forEach(b => { b.onclick = busy(actions[b.dataset.do]); });
+
+  // A short sample lesson: "What is this? This is an apple."
+  document.getElementById('lesson').onclick = busy(async () => {
+    for (const p of Object.values(goat.hands)) if (p.holding) await goat.putDown(home[p.holding.id], { prop: p.holding.id });
+    await goat.setEmotion('happy');
+    goat.wave();
+    await goat.say('Hei! Minä olen Kielipukki.');
+    await goat.setEmotion('thinking');
+    await goat.say('Mikä tämä on?', { hold: 300 });
+    await goat.pointAt('omena');
+    await goat.setEmotion('surprised');
+    await goat.wait(500);
+    await goat.setEmotion('veryHappy');
+    await goat.say('Tämä on omena!');
+    await goat.pickUp('omena');
+    await goat.holdUp();
+    await goat.say('Omena on punainen.');
+    await goat.putDown(home.omena);
+    await goat.setEmotion('confused');
+    await goat.pointAt('kirja');
+    await goat.say('Onko tämä omena?', { hold: 400 });
+    await goat.rest();
+    await goat.shake();
+    await goat.setEmotion('wink');
+    await goat.say('Ei! Tämä on kirja.');
+    await goat.thumbsUp();
+    await goat.setEmotion('happy');
+  });
+</script>
+</body>
+</html>
