@@ -69,7 +69,8 @@
       <button class="primary" id="game">Play "Anna mulle"</button><button id="stop-game" hidden>Stop</button>
       <small id="give-note">Drag a picture from the table to Kielipukki.</small>
     </div>
-    <div class="row"><span>Sound</span>
+    <div class="row"><span>Settings</span>
+      <label class="check"><input type="checkbox" id="bubbles" checked> Word bubbles</label>
       <label class="check"><input type="checkbox" id="speech" checked> Speech</label>
       <label class="check"><input type="checkbox" id="effects" checked> Sound effects</label>
       <label class="check" for="voice">Voice <select id="voice"></select></label>
@@ -125,16 +126,18 @@
   const prefs = (() => { try { return JSON.parse(localStorage.getItem('kielipukki-sound') || '{}'); } catch { return {}; } })();
   const savePrefs = () => { try { localStorage.setItem('kielipukki-sound', JSON.stringify(prefs)); } catch {} };
   const $ = id => document.getElementById(id);
-  const speechBox = $('speech'), effectsBox = $('effects'), voiceSel = $('voice'), rateIn = $('rate'), note = $('voice-note');
+  const bubblesBox = $('bubbles'), speechBox = $('speech'), effectsBox = $('effects'), voiceSel = $('voice'), rateIn = $('rate'), note = $('voice-note');
   if ('speech' in prefs) speechBox.checked = prefs.speech;
   if ('effects' in prefs) effectsBox.checked = prefs.effects;
+  if ('bubbles' in prefs) bubblesBox.checked = prefs.bubbles;
   if (prefs.rate) rateIn.value = prefs.rate;
   const applySound = () => {
     sound.speech = speechBox.checked;
     sound.effects = effectsBox.checked;
+    goat.setBubbles(bubblesBox.checked);
     sound.rate = Number(rateIn.value);
     sound.voice = sound.voices().find(v => v.voiceURI === voiceSel.value) || null;
-    Object.assign(prefs, { speech: sound.speech, effects: sound.effects, rate: sound.rate, voice: voiceSel.value });
+    Object.assign(prefs, { bubbles: bubblesBox.checked, speech: sound.speech, effects: sound.effects, rate: sound.rate, voice: voiceSel.value });
     savePrefs();
   };
   const listVoices = () => {
@@ -152,7 +155,7 @@
   };
   sound.onvoiceschanged = listVoices;
   listVoices();
-  for (const elm of [speechBox, effectsBox, voiceSel, rateIn]) elm.addEventListener('change', applySound);
+  for (const elm of [bubblesBox, speechBox, effectsBox, voiceSel, rateIn]) elm.addEventListener('change', applySound);
 
   // The viewer can drag pictures to the goat at any time.
   goat.enableDragging(true);

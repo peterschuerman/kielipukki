@@ -74,6 +74,7 @@ export class Kielipukki {
       font: "Nunito, 'Trebuchet MS', system-ui, sans-serif",
       letterMs: 70,
       sound: null,
+      bubbles: true,
       ...options,
     };
     const o = this.options;
@@ -208,14 +209,14 @@ export class Kielipukki {
 
   /**
    * Show a speech bubble, speak the text and move the mouth with it.
-   * options: bubble (default true), hold (ms to keep the bubble after
+   * options: bubble (default: options.bubbles, see setBubbles), hold (ms to keep the bubble after
    * talking, default 1400; Infinity keeps it), audio (a URL or
    * HTMLAudioElement to play instead of text-to-speech), speak (false to
    * stay silent for this line), letterMs (time per letter when silent).
    * Speech uses options.sound (a KielipukkiSound) when the goat has one.
    */
   async say(text, options = {}) {
-    const { bubble = true, hold = 1400, audio = null } = options;
+    const { bubble = this.options.bubbles, hold = 1400, audio = null } = options;
     let letterMs = options.letterMs || this.options.letterMs;
     const token = (this._sayToken = {});
     const sound = this.sound;
@@ -269,6 +270,12 @@ export class Kielipukki {
       await this.wait(hold);
       if (this._sayToken === token) this.hideBubble();
     }
+  }
+
+  /** Turn speech bubbles on or off for every line from now on. Off also hides the current bubble. */
+  setBubbles(on) {
+    this.options.bubbles = !!on;
+    if (!on) this.hideBubble();
   }
 
   hideBubble() {

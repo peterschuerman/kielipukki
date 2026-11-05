@@ -148,6 +148,7 @@ The stage is 1200 x 700 units by default. "left" and "right" hands are from the 
 | `lookAt(target)` | Move the eyes toward a point `{x, y}` or a prop id; `null` looks at the viewer |
 | `say(text, options)` | Show a speech bubble, speak the line (see Sound) and move the mouth. Options: `hold` (ms the bubble stays after talking, `Infinity` to keep it), `bubble: false`, `audio` (a recording to play instead of speech), `speak: false`, `letterMs` |
 | `hideBubble()` | Remove the speech bubble |
+| `setBubbles(on)` | Turn speech bubbles on or off for all lines (also the `bubbles` option when creating the goat). A single line can still override it with `say(text, {bubble})` |
 
 Emotions: `neutral`, `happy`, `veryHappy`, `surprised`, `confused`, `thinking`, `sad`, `wink`, `determined`.
 
