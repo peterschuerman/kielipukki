@@ -1,0 +1,1934 @@
+[
+ {
+  "id": "leipa",
+  "fi": "leipä",
+  "en": "bread",
+  "files": [
+   "leipa.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "bread"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.095,
+    0.183,
+    0.908,
+    0.825
+   ]
+  ]
+ },
+ {
+  "id": "voi",
+  "fi": "voi",
+  "en": "butter",
+  "files": [
+   "voi.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "butter"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.07,
+    0.055,
+    0.938,
+    0.94
+   ]
+  ]
+ },
+ {
+  "id": "juusto",
+  "fi": "juusto",
+  "en": "cheese",
+  "files": [
+   "juusto.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "cheese"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.08,
+    0.208,
+    0.933,
+    0.81
+   ]
+  ]
+ },
+ {
+  "id": "omena",
+  "fi": "omena",
+  "en": "apple",
+  "files": [
+   "omena.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "apple"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.143,
+    0.083,
+    0.838,
+    0.92
+   ]
+  ]
+ },
+ {
+  "id": "banaani",
+  "fi": "banaani",
+  "en": "banana",
+  "files": [
+   "banaani.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "banana"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.065,
+    0.205,
+    0.938,
+    0.79
+   ]
+  ]
+ },
+ {
+  "id": "maito",
+  "fi": "maito",
+  "en": "milk",
+  "files": [
+   "maito.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "milk"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.14,
+    0.08,
+    0.925,
+    0.89
+   ]
+  ]
+ },
+ {
+  "id": "vesi",
+  "fi": "vesi",
+  "en": "water",
+  "files": [
+   "vesi.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "water"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.245,
+    0.09,
+    0.78,
+    0.95
+   ]
+  ]
+ },
+ {
+  "id": "kahvi",
+  "fi": "kahvi",
+  "en": "coffee",
+  "files": [
+   "kahvi.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "coffee"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.085,
+    0.13,
+    0.913,
+    0.855
+   ]
+  ]
+ },
+ {
+  "id": "tee",
+  "fi": "tee",
+  "en": "tea",
+  "files": [
+   "tee.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "tea"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.07,
+    0.068,
+    0.93,
+    0.93
+   ]
+  ]
+ },
+ {
+  "id": "keksi",
+  "fi": "keksi",
+  "en": "biscuit",
+  "files": [
+   "keksi.svg"
+  ],
+  "match": "Related / partial",
+  "mulberry": [
+   "biscuit_chocolate_chip"
+  ],
+  "source": "mulberry",
+  "note": "Core or related meaning only; phrase, context, or grammatical details are not fully represented.",
+  "boxes": [
+   [
+    0.1,
+    0.135,
+    0.905,
+    0.868
+   ]
+  ]
+ },
+ {
+  "id": "kuppi",
+  "fi": "kuppi",
+  "en": "cup",
+  "files": [
+   "kuppi.svg"
+  ],
+  "match": "Related / partial",
+  "mulberry": [
+   "mug_2"
+  ],
+  "source": "mulberry",
+  "note": "Core or related meaning only; phrase, context, or grammatical details are not fully represented.",
+  "boxes": [
+   [
+    0.138,
+    0.075,
+    0.885,
+    0.935
+   ]
+  ]
+ },
+ {
+  "id": "lautanen",
+  "fi": "lautanen",
+  "en": "plate",
+  "files": [
+   "lautanen.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "plate"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.058,
+    0.065,
+    0.935,
+    0.943
+   ]
+  ]
+ },
+ {
+  "id": "lusikka",
+  "fi": "lusikka",
+  "en": "spoon",
+  "files": [
+   "lusikka.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "spoon"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.385,
+    0.048,
+    0.613,
+    0.955
+   ]
+  ]
+ },
+ {
+  "id": "poyta",
+  "fi": "pöytä",
+  "en": "table",
+  "files": [
+   "poyta.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "table"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.095,
+    0.09,
+    0.895,
+    0.913
+   ]
+  ]
+ },
+ {
+  "id": "tuoli",
+  "fi": "tuoli",
+  "en": "chair",
+  "files": [
+   "tuoli.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "chair"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.223,
+    0.083,
+    0.773,
+    0.913
+   ]
+  ]
+ },
+ {
+  "id": "ovi",
+  "fi": "ovi",
+  "en": "door",
+  "files": [
+   "ovi.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "door"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.115,
+    0.08,
+    0.888,
+    0.915
+   ]
+  ]
+ },
+ {
+  "id": "ikkuna",
+  "fi": "ikkuna",
+  "en": "window",
+  "files": [
+   "ikkuna.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "window"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.163,
+    0.068,
+    0.84,
+    0.928
+   ]
+  ]
+ },
+ {
+  "id": "lamppu",
+  "fi": "lamppu",
+  "en": "lamp",
+  "files": [
+   "lamppu.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "lamp"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.208,
+    0.028,
+    0.95,
+    0.97
+   ]
+  ]
+ },
+ {
+  "id": "lattia",
+  "fi": "lattia",
+  "en": "floor",
+  "files": [
+   "lattia.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "floor"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.113,
+    0.123,
+    0.885,
+    0.875
+   ]
+  ]
+ },
+ {
+  "id": "seina",
+  "fi": "seinä",
+  "en": "wall",
+  "files": [
+   "seina.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "wall"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.09,
+    0.1,
+    0.908,
+    0.895
+   ]
+  ]
+ },
+ {
+  "id": "kaappi",
+  "fi": "kaappi",
+  "en": "cupboard",
+  "files": [
+   "kaappi.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "cupboard"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.115,
+    0.103,
+    0.898,
+    0.905
+   ]
+  ]
+ },
+ {
+  "id": "hylly",
+  "fi": "hylly",
+  "en": "shelf",
+  "files": [
+   "hylly.svg"
+  ],
+  "match": "Related / partial",
+  "mulberry": [
+   "book_shelf"
+  ],
+  "source": "mulberry",
+  "note": "Core or related meaning only; phrase, context, or grammatical details are not fully represented.",
+  "boxes": [
+   [
+    0.07,
+    0.115,
+    0.93,
+    0.873
+   ]
+  ]
+ },
+ {
+  "id": "kirja",
+  "fi": "kirja",
+  "en": "book",
+  "files": [
+   "kirja.svg"
+  ],
+  "match": "Related / partial",
+  "mulberry": [
+   "work_book"
+  ],
+  "source": "mulberry",
+  "note": "Workbook rather than a generic book.",
+  "boxes": [
+   [
+    0.055,
+    0.175,
+    0.945,
+    0.775
+   ]
+  ]
+ },
+ {
+  "id": "kyna",
+  "fi": "kynä",
+  "en": "pen",
+  "files": [
+   "kyna.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "pen"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.44,
+    0.068,
+    0.575,
+    0.925
+   ]
+  ]
+ },
+ {
+  "id": "paperi",
+  "fi": "paperi",
+  "en": "paper",
+  "files": [
+   "paperi.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "paper"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.148,
+    0.078,
+    0.85,
+    0.923
+   ]
+  ]
+ },
+ {
+  "id": "pallo",
+  "fi": "pallo",
+  "en": "ball",
+  "files": [
+   "pallo.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "ball"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.123,
+    0.09,
+    0.905,
+    0.903
+   ]
+  ]
+ },
+ {
+  "id": "kuva",
+  "fi": "kuva",
+  "en": "picture",
+  "files": [
+   "kuva.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "picture"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.09,
+    0.11,
+    0.91,
+    0.885
+   ]
+  ]
+ },
+ {
+  "id": "puhelin",
+  "fi": "puhelin",
+  "en": "phone",
+  "files": [
+   "puhelin.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "mobile_phone"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.288,
+    0.068,
+    0.705,
+    0.935
+   ]
+  ]
+ },
+ {
+  "id": "avain",
+  "fi": "avain",
+  "en": "key",
+  "files": [
+   "avain.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "key_1"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.328,
+    0.053,
+    0.663,
+    0.95
+   ]
+  ]
+ },
+ {
+  "id": "laukku",
+  "fi": "laukku",
+  "en": "bag",
+  "files": [
+   "laukku.svg"
+  ],
+  "match": "Related / partial",
+  "mulberry": [
+   "hand_bag"
+  ],
+  "source": "mulberry",
+  "note": "Core or related meaning only; phrase, context, or grammatical details are not fully represented.",
+  "boxes": [
+   [
+    0.198,
+    0.075,
+    0.803,
+    0.923
+   ]
+  ]
+ },
+ {
+  "id": "kassi",
+  "fi": "kassi",
+  "en": "shopping bag",
+  "files": [
+   "kassi.svg"
+  ],
+  "match": "Related / partial",
+  "mulberry": [
+   "plastic_bag"
+  ],
+  "source": "mulberry",
+  "note": "Core or related meaning only; phrase, context, or grammatical details are not fully represented.",
+  "boxes": [
+   [
+    0.23,
+    0.07,
+    0.775,
+    0.925
+   ]
+  ]
+ },
+ {
+  "id": "raha",
+  "fi": "raha",
+  "en": "money",
+  "files": [
+   "raha.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "money"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.08,
+    0.093,
+    0.915,
+    0.9
+   ]
+  ]
+ },
+ {
+  "id": "takki",
+  "fi": "takki",
+  "en": "coat",
+  "files": [
+   "takki.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "coat"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.155,
+    0.09,
+    0.858,
+    0.928
+   ]
+  ]
+ },
+ {
+  "id": "kengat",
+  "fi": "kengät",
+  "en": "shoes",
+  "files": [
+   "kengat.svg"
+  ],
+  "match": "Related / partial",
+  "mulberry": [
+   "shoe_-_mans"
+  ],
+  "source": "mulberry",
+  "note": "Core or related meaning only; phrase, context, or grammatical details are not fully represented.",
+  "boxes": [
+   [
+    0.09,
+    0.228,
+    0.91,
+    0.75
+   ]
+  ]
+ },
+ {
+  "id": "hattu",
+  "fi": "hattu",
+  "en": "hat",
+  "files": [
+   "hattu.svg"
+  ],
+  "match": "Related / partial",
+  "mulberry": [
+   "hat_-_mans"
+  ],
+  "source": "mulberry",
+  "note": "Core or related meaning only; phrase, context, or grammatical details are not fully represented.",
+  "boxes": [
+   [
+    0.083,
+    0.193,
+    0.918,
+    0.808
+   ]
+  ]
+ },
+ {
+  "id": "paita",
+  "fi": "paita",
+  "en": "shirt",
+  "files": [
+   "paita.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "shirt"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.088,
+    0.073,
+    0.933,
+    0.93
+   ]
+  ]
+ },
+ {
+  "id": "housut",
+  "fi": "housut",
+  "en": "trousers",
+  "files": [
+   "housut.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "trousers"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.278,
+    0.075,
+    0.713,
+    0.925
+   ]
+  ]
+ },
+ {
+  "id": "sukat",
+  "fi": "sukat",
+  "en": "socks",
+  "files": [
+   "sukat.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "socks"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.083,
+    0.095,
+    0.903,
+    0.903
+   ]
+  ]
+ },
+ {
+  "id": "aurinko",
+  "fi": "aurinko",
+  "en": "sun",
+  "files": [
+   "aurinko.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "sun"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.103,
+    0.105,
+    0.898,
+    0.893
+   ]
+  ]
+ },
+ {
+  "id": "sade",
+  "fi": "sade",
+  "en": "rain",
+  "files": [
+   "sade.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "rain"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.158,
+    0.075,
+    0.853,
+    0.9
+   ]
+  ]
+ },
+ {
+  "id": "lumi",
+  "fi": "lumi",
+  "en": "snow",
+  "files": [
+   "lumi.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "snow"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.13,
+    0.073,
+    0.883,
+    0.93
+   ]
+  ]
+ },
+ {
+  "id": "tuuli",
+  "fi": "tuuli",
+  "en": "wind",
+  "files": [
+   "tuuli.webp"
+  ],
+  "match": "Custom artwork",
+  "mulberry": null,
+  "source": "custom",
+  "note": "New AI-generated companion icon; not an official Mulberry symbol.",
+  "boxes": [
+   [
+    0.133,
+    0.3,
+    0.868,
+    0.723
+   ]
+  ]
+ },
+ {
+  "id": "puu",
+  "fi": "puu",
+  "en": "tree",
+  "files": [
+   "puu.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "tree"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.188,
+    0.07,
+    0.808,
+    0.933
+   ]
+  ]
+ },
+ {
+  "id": "kukka",
+  "fi": "kukka",
+  "en": "flower",
+  "files": [
+   "kukka.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "flower"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.218,
+    0.05,
+    0.845,
+    0.968
+   ]
+  ]
+ },
+ {
+  "id": "katu",
+  "fi": "katu",
+  "en": "street",
+  "files": [
+   "katu.svg"
+  ],
+  "match": "Related / partial",
+  "mulberry": [
+   "road"
+  ],
+  "source": "mulberry",
+  "note": "Core or related meaning only; phrase, context, or grammatical details are not fully represented.",
+  "boxes": [
+   [
+    0.095,
+    0.175,
+    0.933,
+    0.905
+   ]
+  ]
+ },
+ {
+  "id": "auto",
+  "fi": "auto",
+  "en": "car",
+  "files": [
+   "auto.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "car"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.07,
+    0.315,
+    0.935,
+    0.665
+   ]
+  ]
+ },
+ {
+  "id": "bussi",
+  "fi": "bussi",
+  "en": "bus",
+  "files": [
+   "bussi.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "bus"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.055,
+    0.2,
+    0.958,
+    0.743
+   ]
+  ]
+ },
+ {
+  "id": "talo",
+  "fi": "talo",
+  "en": "house",
+  "files": [
+   "talo.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "house"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.178,
+    0.078,
+    0.823,
+    0.915
+   ]
+  ]
+ },
+ {
+  "id": "koira",
+  "fi": "koira",
+  "en": "dog",
+  "files": [
+   "koira.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "dog"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.08,
+    0.183,
+    0.92,
+    0.83
+   ]
+  ]
+ },
+ {
+  "id": "kissa",
+  "fi": "kissa",
+  "en": "cat",
+  "files": [
+   "kissa.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "cat"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.215,
+    0.063,
+    0.798,
+    0.938
+   ]
+  ]
+ },
+ {
+  "id": "lintu",
+  "fi": "lintu",
+  "en": "bird",
+  "files": [
+   "lintu.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "bird"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.065,
+    0.193,
+    0.928,
+    0.793
+   ]
+  ]
+ },
+ {
+  "id": "kala",
+  "fi": "kala",
+  "en": "fish",
+  "files": [
+   "kala.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "fish"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.085,
+    0.235,
+    0.91,
+    0.765
+   ]
+  ]
+ },
+ {
+  "id": "hevonen",
+  "fi": "hevonen",
+  "en": "horse",
+  "files": [
+   "hevonen.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "horse"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.07,
+    0.138,
+    0.93,
+    0.828
+   ]
+  ]
+ },
+ {
+  "id": "mies",
+  "fi": "mies",
+  "en": "man",
+  "files": [
+   "mies.svg"
+  ],
+  "match": "Related / partial",
+  "mulberry": [
+   "man_-_face"
+  ],
+  "source": "mulberry",
+  "note": "Core or related meaning only; phrase, context, or grammatical details are not fully represented.",
+  "boxes": [
+   [
+    0.155,
+    0.063,
+    0.843,
+    0.943
+   ]
+  ]
+ },
+ {
+  "id": "nainen",
+  "fi": "nainen",
+  "en": "woman",
+  "files": [
+   "nainen.svg"
+  ],
+  "match": "Related / partial",
+  "mulberry": [
+   "lady_-_face"
+  ],
+  "source": "mulberry",
+  "note": "Core or related meaning only; phrase, context, or grammatical details are not fully represented.",
+  "boxes": [
+   [
+    0.135,
+    0.055,
+    0.848,
+    0.928
+   ]
+  ]
+ },
+ {
+  "id": "lapsi",
+  "fi": "lapsi",
+  "en": "child",
+  "files": [
+   "lapsi.webp"
+  ],
+  "match": "Custom artwork",
+  "mulberry": null,
+  "source": "custom",
+  "note": "New AI-generated companion icon; not an official Mulberry symbol.",
+  "boxes": [
+   [
+    0.35,
+    0.035,
+    0.643,
+    0.973
+   ]
+  ]
+ },
+ {
+  "id": "aiti",
+  "fi": "äiti",
+  "en": "mother",
+  "files": [
+   "aiti.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "mum_parent"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.16,
+    0.073,
+    0.673,
+    0.945
+   ]
+  ]
+ },
+ {
+  "id": "isa",
+  "fi": "isä",
+  "en": "father",
+  "files": [
+   "isa.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "dad_parent"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.285,
+    0.075,
+    0.905,
+    0.95
+   ]
+  ]
+ },
+ {
+  "id": "paa",
+  "fi": "pää",
+  "en": "head",
+  "files": [
+   "paa.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "head"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.163,
+    0.058,
+    0.825,
+    0.928
+   ]
+  ]
+ },
+ {
+  "id": "kasi",
+  "fi": "käsi",
+  "en": "hand, arm",
+  "files": [
+   "kasi-1.svg",
+   "kasi-2.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "left_hand",
+   "arm"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.153,
+    0.085,
+    0.833,
+    0.918
+   ],
+   [
+    0.205,
+    0.08,
+    0.798,
+    0.92
+   ]
+  ]
+ },
+ {
+  "id": "jalka",
+  "fi": "jalka",
+  "en": "foot, leg",
+  "files": [
+   "jalka-1.svg",
+   "jalka-2.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "foot",
+   "leg"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.18,
+    0.075,
+    0.798,
+    0.933
+   ],
+   [
+    0.293,
+    0.08,
+    0.718,
+    0.925
+   ]
+  ]
+ },
+ {
+  "id": "silma",
+  "fi": "silmä",
+  "en": "eye",
+  "files": [
+   "silma.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "eye"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.1,
+    0.145,
+    0.898,
+    0.818
+   ]
+  ]
+ },
+ {
+  "id": "suu",
+  "fi": "suu",
+  "en": "mouth",
+  "files": [
+   "suu.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "mouth"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.093,
+    0.283,
+    0.92,
+    0.71
+   ]
+  ]
+ },
+ {
+  "id": "nena",
+  "fi": "nenä",
+  "en": "nose",
+  "files": [
+   "nena.webp"
+  ],
+  "match": "Custom artwork",
+  "mulberry": null,
+  "source": "custom",
+  "note": "New AI-generated companion icon; not an official Mulberry symbol.",
+  "boxes": [
+   [
+    0.253,
+    0.138,
+    0.748,
+    0.865
+   ]
+  ]
+ },
+ {
+  "id": "korva",
+  "fi": "korva",
+  "en": "ear",
+  "files": [
+   "korva.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "ear"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.205,
+    0.053,
+    0.778,
+    0.928
+   ]
+  ]
+ },
+ {
+  "id": "vatsa",
+  "fi": "vatsa",
+  "en": "stomach",
+  "files": [
+   "vatsa.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "stomach"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.113,
+    0.068,
+    0.885,
+    0.925
+   ]
+  ]
+ },
+ {
+  "id": "kaks",
+  "fi": "kaks",
+  "en": "two",
+  "files": [
+   "kaks.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "two"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.265,
+    0.203,
+    0.72,
+    0.818
+   ]
+  ]
+ },
+ {
+  "id": "kolme",
+  "fi": "kolme",
+  "en": "three",
+  "files": [
+   "kolme.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "three"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.258,
+    0.195,
+    0.738,
+    0.815
+   ]
+  ]
+ },
+ {
+  "id": "punainen",
+  "fi": "punainen",
+  "en": "red",
+  "files": [
+   "punainen.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "red"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.138,
+    0.04,
+    0.9,
+    0.94
+   ]
+  ]
+ },
+ {
+  "id": "sininen",
+  "fi": "sininen",
+  "en": "blue",
+  "files": [
+   "sininen.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "blue"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.138,
+    0.04,
+    0.9,
+    0.94
+   ]
+  ]
+ },
+ {
+  "id": "anna",
+  "fi": "anna",
+  "en": "give",
+  "files": [
+   "anna.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "give_,_to"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.095,
+    0.223,
+    0.905,
+    0.78
+   ]
+  ]
+ },
+ {
+  "id": "anna-mulle",
+  "fi": "anna mulle",
+  "en": "give me",
+  "files": [
+   "anna-mulle.svg"
+  ],
+  "match": "Related / partial",
+  "mulberry": [
+   "give_,_to"
+  ],
+  "source": "mulberry",
+  "note": "Core or related meaning only; phrase, context, or grammatical details are not fully represented.",
+  "boxes": [
+   [
+    0.095,
+    0.223,
+    0.905,
+    0.78
+   ]
+  ]
+ },
+ {
+  "id": "ota",
+  "fi": "ota",
+  "en": "take",
+  "files": [
+   "ota.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "take_,_to"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.078,
+    0.18,
+    0.925,
+    0.818
+   ]
+  ]
+ },
+ {
+  "id": "tuu-tanne",
+  "fi": "tuu tänne",
+  "en": "come here",
+  "files": [
+   "tuu-tanne.svg"
+  ],
+  "match": "Related / partial",
+  "mulberry": [
+   "come_,_to"
+  ],
+  "source": "mulberry",
+  "note": "Core or related meaning only; phrase, context, or grammatical details are not fully represented.",
+  "boxes": [
+   [
+    0.098,
+    0.183,
+    0.9,
+    0.815
+   ]
+  ]
+ },
+ {
+  "id": "mee-pois",
+  "fi": "mee pois",
+  "en": "go away",
+  "files": [
+   "mee-pois-1.svg",
+   "mee-pois-2.svg"
+  ],
+  "match": "Related / partial",
+  "mulberry": [
+   "go_,_to",
+   "away"
+  ],
+  "source": "mulberry",
+  "note": "Core or related meaning only; phrase, context, or grammatical details are not fully represented.",
+  "boxes": [
+   [
+    0.113,
+    0.09,
+    0.885,
+    0.91
+   ],
+   [
+    0.11,
+    0.105,
+    0.893,
+    0.89
+   ]
+  ]
+ },
+ {
+  "id": "kato",
+  "fi": "kato",
+  "en": "look",
+  "files": [
+   "kato.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "look_,_to"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.085,
+    0.223,
+    0.913,
+    0.78
+   ]
+  ]
+ },
+ {
+  "id": "istu",
+  "fi": "istu",
+  "en": "sit",
+  "files": [
+   "istu.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "sit_,_to"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.213,
+    0.078,
+    0.79,
+    0.923
+   ]
+  ]
+ },
+ {
+  "id": "odota",
+  "fi": "odota",
+  "en": "wait",
+  "files": [
+   "odota.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "wait_,_to"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.235,
+    0.063,
+    0.765,
+    0.94
+   ]
+  ]
+ },
+ {
+  "id": "ei",
+  "fi": "ei",
+  "en": "no, not",
+  "files": [
+   "ei.svg"
+  ],
+  "match": "Related / partial",
+  "mulberry": [
+   "mistake_no_wrong"
+  ],
+  "source": "mulberry",
+  "note": "Wrong/no symbol does not encode grammatical negation.",
+  "boxes": [
+   [
+    0.068,
+    0.093,
+    0.92,
+    0.915
+   ]
+  ]
+ },
+ {
+  "id": "oranssi",
+  "fi": "oranssi",
+  "en": "orange",
+  "files": [
+   "oranssi.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "orange_2"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.138,
+    0.04,
+    0.9,
+    0.94
+   ]
+  ]
+ },
+ {
+  "id": "keltainen",
+  "fi": "keltainen",
+  "en": "yellow",
+  "files": [
+   "keltainen.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "yellow"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.138,
+    0.04,
+    0.9,
+    0.94
+   ]
+  ]
+ },
+ {
+  "id": "vihrea",
+  "fi": "vihreä",
+  "en": "green",
+  "files": [
+   "vihrea.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "green"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.138,
+    0.04,
+    0.9,
+    0.94
+   ]
+  ]
+ },
+ {
+  "id": "violetti",
+  "fi": "violetti",
+  "en": "purple",
+  "files": [
+   "violetti.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "purple"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.138,
+    0.04,
+    0.9,
+    0.94
+   ]
+  ]
+ },
+ {
+  "id": "harmaa",
+  "fi": "harmaa",
+  "en": "grey",
+  "files": [
+   "harmaa.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "grey_light"
+  ],
+  "source": "mulberry",
+  "note": "Light-grey colour symbol.",
+  "boxes": [
+   [
+    0.138,
+    0.04,
+    0.9,
+    0.94
+   ]
+  ]
+ },
+ {
+  "id": "ruskea",
+  "fi": "ruskea",
+  "en": "brown",
+  "files": [
+   "ruskea.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "brown"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.138,
+    0.04,
+    0.9,
+    0.94
+   ]
+  ]
+ },
+ {
+  "id": "musta",
+  "fi": "musta",
+  "en": "black",
+  "files": [
+   "musta.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "black"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.138,
+    0.04,
+    0.9,
+    0.94
+   ]
+  ]
+ },
+ {
+  "id": "valkoinen",
+  "fi": "valkoinen",
+  "en": "white",
+  "files": [
+   "valkoinen.svg"
+  ],
+  "match": "Direct meaning",
+  "mulberry": [
+   "white"
+  ],
+  "source": "mulberry",
+  "note": null,
+  "boxes": [
+   [
+    0.138,
+    0.04,
+    0.9,
+    0.94
+   ]
+  ]
+ }
+]

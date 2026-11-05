@@ -2,30 +2,59 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Kielipukki demo</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kielipukki</title>
+<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
 <style>
-  :root { --bg: #f6f3ec; --panel: #fff; --ink: #111; --muted: #666; --accent: #3e63dd; }
+  /* Layout: one column. Stage on top, action rows below, then a grid of every vocabulary word. */
+  :root {
+    --bg: #eef0f3; --surface: #ffffff; --ink: #14161a; --muted: #5d6470;
+    --line: #14161a; --accent: #3e63dd; --accent-ink: #ffffff; --hover: #e6ebfb; --soft: #d7dbe2;
+    --font: Nunito, "Trebuchet MS", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #15171c; --surface: #22252c; --ink: #eef0f4; --muted: #a2a9b6;
+    --line: #4a505c; --accent: #6f8ff0; --accent-ink: #0d1020; --hover: #2c3242; --soft: #353a45; color-scheme: dark; } }
+  :root[data-theme="dark"] {
+    --bg: #15171c; --surface: #22252c; --ink: #eef0f4; --muted: #a2a9b6;
+    --line: #4a505c; --accent: #6f8ff0; --accent-ink: #0d1020; --hover: #2c3242; --soft: #353a45; color-scheme: dark; }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font-family: Nunito, system-ui, sans-serif; }
-  main { max-width: 1200px; margin: 0 auto; padding: 16px; }
-  h1 { font-size: 26px; margin: 4px 0 12px; }
-  #stage { background: #fff; border: 3px solid var(--ink); border-radius: 18px; overflow: hidden; }
-  .controls { display: grid; gap: 10px; margin-top: 14px; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font);
+         padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  main { max-width: 1100px; margin: 0 auto; padding-block: 20px 40px; display: grid; gap: 16px; }
+  header { display: grid; gap: 4px; }
+  h1 { font-size: 30px; font-weight: 900; margin: 0; text-wrap: balance; }
+  h2 { font-size: 20px; font-weight: 900; margin: 8px 0 0; }
+  p { margin: 0; color: var(--muted); font-size: 16px; max-width: 65ch; }
+  /* The stage stays white in both themes: the character is drawn in black on white. */
+  #stage { background: #fff; border: 3px solid #14161a; border-radius: 18px; overflow: hidden; }
+  .controls { display: grid; gap: 10px; }
   .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
-  .row > span { width: 90px; font-weight: 800; color: var(--muted); font-size: 14px; }
-  button { font: inherit; font-weight: 700; font-size: 15px; padding: 7px 12px; border: 2px solid var(--ink);
-           border-radius: 10px; background: var(--panel); cursor: pointer; }
-  button:hover { background: #eef2ff; }
-  button.primary { background: var(--accent); color: #fff; }
+  .row > span { width: 90px; font-weight: 800; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; }
+  button { font: inherit; font-weight: 700; font-size: 15px; padding: 7px 12px; color: var(--ink);
+           border: 2px solid var(--line); border-radius: 10px; background: var(--surface); cursor: pointer; }
+  button:hover { background: var(--hover); }
+  button:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  #words { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+  #words button { display: grid; justify-items: center; gap: 2px; padding: 8px 4px 6px; border-color: var(--soft); }
+  #words button:hover { border-color: var(--line); }
+  #words .pic { width: 64px; height: 64px; display: grid; place-items: center; background: #fff; border-radius: 8px; }
+  #words img { width: 58px; height: 58px; object-fit: contain; }
+  #words b { font-size: 15px; }
+  #words small { font-size: 12px; color: var(--muted); font-weight: 600; }
+  footer small { color: var(--muted); font-size: 13px; }
   @media (max-width: 600px) { .row > span { width: 100%; } }
 </style>
 </head>
 <body>
 <main>
-  <h1>Kielipukki</h1>
+  <header>
+    <h1>Kielipukki</h1>
+    <p>Press a button to run an action, or choose a word below and the goat will put it on the table and teach it.</p>
+  </header>
   <div id="stage"></div>
   <div class="controls">
     <div class="row"><span>Lesson</span><button class="primary" id="lesson">Play sample lesson</button></div>
@@ -41,12 +70,21 @@
       <button data-do="wave">Wave</button><button data-do="thumbsUp">Thumbs up</button><button data-do="rest">Rest</button>
     </div>
   </div>
+  <h2>Words</h2>
+  <p>Choose a word to teach. It replaces one of the four things on the table.</p>
+  <div id="words"></div>
+  <footer><small>Icons: Mulberry Symbols by Steve Lee, CC BY-SA 4.0 (mulberrysymbols.org). The pictures for tuuli, lapsi and nenä are separate custom artwork.</small></footer>
 </main>
 <script type="module">
   import { createKielipukki } from '../src/kielipukki.js';
   import { EMOTIONS } from '../src/emotions.js';
+  import { registerIcons } from '../src/icons.js';
 
-  const goat = await createKielipukki(document.getElementById('stage'));
+  // A standalone build (tools/build-standalone.mjs) puts the rig and icons on window.
+  const inline = window.KIELIPUKKI_INLINE;
+  const goat = await createKielipukki(document.getElementById('stage'), inline ? { rigSvg: inline.rig } : {});
+  const words = await registerIcons(goat, inline ? { words: inline.words, hrefFor: f => inline.files[f] } : {});
+  const iconHref = f => inline ? inline.files[f] : `../assets/icons/${f}`;
   window.goat = goat; // for trying things in the browser console
 
   // Background: a table for the props.
@@ -55,30 +93,44 @@
     <rect x="560" y="596" width="620" height="22" rx="11" fill="#c9a77c" stroke="#111" stroke-width="7"/>
     <path d="M600 618 L600 700 M1140 618 L1140 700" stroke="#111" stroke-width="10"/>`;
 
-  // Props sit on the table: y is the prop's centre.
-  const spots = { omena: ['apple', 660], kirja: ['book', 805], kuppi: ['cup', 950], avain: ['key', 1085] };
-  const home = {};
-  for (const [id, [type, x]] of Object.entries(spots)) {
-    const y = { apple: 534, book: 538, cup: 534, key: 574 }[type];
-    goat.addProp(type, { id, x, y });
-    home[id] = { x, y };
+  // Four places on the table. Each holds one word; the prop id is the word id.
+  const SLOT_X = [655, 800, 945, 1090], TABLE_TOP = 592;
+  const slots = ['omena', 'kirja', 'kuppi', 'avain'];
+  let nextSlot = 0;
+  slots.forEach((id, i) => goat.addProp(id, { id, x: SLOT_X[i], bottom: TABLE_TOP }));
+  const home = id => ({ x: SLOT_X[slots.indexOf(id)], bottom: TABLE_TOP });
+  const word = id => words[id].fi;
+
+  let running = Promise.resolve();
+  const run = fn => () => { running = running.then(fn).catch(e => console.error(e)); return running; };
+  const held = () => Object.values(goat.hands).find(h => h.holding)?.holding;
+  async function putBack() {
+    for (const h of Object.values(goat.hands)) if (h.holding) await goat.putDown(home(h.holding.id), { prop: h.holding.id });
   }
 
-  const busy = fn => async () => { try { await fn(); } catch (e) { console.error(e); } };
-  const row = (id, items, make) => {
-    const r = document.getElementById(id);
-    for (const item of items) {
-      const b = document.createElement('button');
-      b.textContent = item;
-      b.onclick = busy(() => make(item));
-      r.appendChild(b);
+  function slotRows() {
+    for (const [rowId, action] of [['point', id => goat.pointAt(id, { hold: 1500 })], ['pick', id => goat.pickUp(id)]]) {
+      const r = document.getElementById(rowId);
+      r.querySelectorAll('button').forEach(b => b.remove());
+      const ids = rowId === 'point' ? [...slots, 'self'] : slots;
+      for (const id of ids) {
+        const b = document.createElement('button');
+        b.textContent = id === 'self' ? 'itseä (self)' : word(id);
+        b.onclick = run(() => action(id));
+        r.appendChild(b);
+      }
     }
-  };
-  row('emotions', Object.keys(EMOTIONS), name => goat.setEmotion(name));
-  row('point', [...Object.keys(spots), 'self'], id => goat.pointAt(id, { hold: 1500 }));
-  row('pick', Object.keys(spots), id => goat.pickUp(id));
+  }
+  slotRows();
 
-  const held = () => Object.values(goat.hands).find(h => h.holding)?.holding;
+  const emoRow = document.getElementById('emotions');
+  for (const name of Object.keys(EMOTIONS)) {
+    const b = document.createElement('button');
+    b.textContent = name;
+    b.onclick = run(() => goat.setEmotion(name));
+    emoRow.appendChild(b);
+  }
+
   const actions = {
     blink: () => goat.blink(),
     nod: () => goat.nod(),
@@ -86,37 +138,72 @@
     hop: () => goat.hop(),
     say: () => goat.say('Hei! Minä olen Kielipukki. Opitaan suomea yhdessä!'),
     holdUp: () => goat.holdUp(),
-    putDown: () => { const p = held(); return p && goat.putDown(home[p.id], { prop: p.id }); },
+    putDown: () => { const p = held(); return p && goat.putDown(home(p.id), { prop: p.id }); },
     wave: () => goat.wave(),
     thumbsUp: () => goat.thumbsUp(),
     rest: () => goat.rest(),
   };
-  document.querySelectorAll('[data-do]').forEach(b => { b.onclick = busy(actions[b.dataset.do]); });
+  document.querySelectorAll('[data-do]').forEach(b => { b.onclick = run(actions[b.dataset.do]); });
 
-  // A short sample lesson: "What is this? This is an apple."
-  document.getElementById('lesson').onclick = busy(async () => {
-    for (const p of Object.values(goat.hands)) if (p.holding) await goat.putDown(home[p.holding.id], { prop: p.holding.id });
+  // Put a word on the table (if it is not there yet) and teach it.
+  async function teach(id) {
+    await putBack();
+    if (!slots.includes(id)) {
+      const i = nextSlot;
+      nextSlot = (nextSlot + 1) % slots.length;
+      goat.removeProp(slots[i]);
+      slots[i] = id;
+      goat.addProp(id, { id, x: SLOT_X[i], bottom: TABLE_TOP });
+      slotRows();
+    }
+    await goat.setEmotion('thinking');
+    await goat.say('Mikä tämä on?', { hold: 200 });
+    await goat.pointAt(id);
+    await goat.setEmotion('veryHappy');
+    await goat.say(`Tämä on ${word(id)}.`, { hold: 300 });
+    await goat.pickUp(id);
+    await goat.holdUp();
+    await goat.say(`${word(id)[0].toUpperCase()}${word(id).slice(1)}!`, { hold: 500 });
+    await goat.putDown(home(id));
+    await goat.setEmotion('happy');
+  }
+
+  const grid = document.getElementById('words');
+  for (const w of Object.values(words)) {
+    const b = document.createElement('button');
+    b.innerHTML = `<span class="pic"><img alt="" src="${iconHref(w.files[0])}"></span><b></b><small></small>`;
+    b.querySelector('b').textContent = w.fi;
+    b.querySelector('small').textContent = w.en;
+    b.title = `Teach "${w.fi}"`;
+    b.onclick = run(() => teach(w.id));
+    grid.appendChild(b);
+  }
+
+  // A short sample lesson using the first two things on the table.
+  document.getElementById('lesson').onclick = run(async () => {
+    await putBack();
+    const [a, b] = slots;
     await goat.setEmotion('happy');
     goat.wave();
     await goat.say('Hei! Minä olen Kielipukki.');
     await goat.setEmotion('thinking');
     await goat.say('Mikä tämä on?', { hold: 300 });
-    await goat.pointAt('omena');
+    await goat.pointAt(a);
     await goat.setEmotion('surprised');
     await goat.wait(500);
     await goat.setEmotion('veryHappy');
-    await goat.say('Tämä on omena!');
-    await goat.pickUp('omena');
+    await goat.say(`Tämä on ${word(a)}!`);
+    await goat.pickUp(a);
     await goat.holdUp();
-    await goat.say('Omena on punainen.');
-    await goat.putDown(home.omena);
+    await goat.say(`Minulla on ${word(a)}.`);
+    await goat.putDown(home(a));
     await goat.setEmotion('confused');
-    await goat.pointAt('kirja');
-    await goat.say('Onko tämä omena?', { hold: 400 });
+    await goat.pointAt(b);
+    await goat.say(`Onko tämä ${word(a)}?`, { hold: 400 });
     await goat.rest();
     await goat.shake();
     await goat.setEmotion('wink');
-    await goat.say('Ei! Tämä on kirja.');
+    await goat.say(`Ei! Tämä on ${word(b)}.`);
     await goat.thumbsUp();
     await goat.setEmotion('happy');
   });

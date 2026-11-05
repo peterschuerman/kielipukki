@@ -20,10 +20,47 @@ Then open http://localhost:8000/demo/. The buttons run each action, and "Play sa
 | --- | --- |
 | `assets/goat/rig.svg` | The character: head parts, face variants, hand poses and sample props |
 | `assets/goat/reference.png` | The original drawing the rig was redrawn from |
+| `assets/icons/` | 90 vocabulary pictures for 87 Finnish words, and `icons.json` listing each word |
 | `src/kielipukki.js` | The controller that loads the rig and runs the actions |
 | `src/emotions.js` | Emotion presets (which eyes, mouth and brows each emotion uses) |
-| `demo/index.html` | Demo page and sample lesson |
+| `src/icons.js` | Registers the vocabulary pictures as props |
+| `demo/index.html` | Demo page, word picker and sample lesson |
+| `tools/build-standalone.mjs` | Builds `dist/kielipukki.html`, the demo as one file that works without a server |
+| `tools/measure-icons.mjs` | Measures each picture's drawn area and stores it in `icons.json` |
 | `tools/render-previews.mjs` | Renders the preview images in `docs/` |
+
+To get the demo as one file you can open directly or send to someone:
+
+```bash
+node tools/build-standalone.mjs
+```
+
+## Vocabulary icons
+
+`assets/icons/icons.json` lists each word:
+
+```json
+{ "id": "omena", "fi": "omena", "en": "apple", "files": ["omena.svg"],
+  "match": "Direct meaning", "mulberry": ["apple"], "source": "mulberry",
+  "note": null, "boxes": [[0.143, 0.083, 0.838, 0.92]] }
+```
+
+`id` is the Finnish word in lowercase ASCII (`pöytä` becomes `poyta`, `tuu tänne` becomes `tuu-tanne`). `match` says whether the picture shows the word directly, a related meaning, or is custom artwork. `boxes` is where the drawing sits inside each picture; run `node tools/measure-icons.mjs` after adding or changing pictures.
+
+`registerIcons(goat)` makes every word a prop type named by its id, with its Finnish word as the label:
+
+```js
+import { registerIcons } from './src/icons.js';
+
+const words = await registerIcons(goat);
+goat.addProp('banaani', { x: 800, bottom: 592 });   // stands on a surface at y = 592
+await goat.pointAt('banaani');
+await goat.say(`Tämä on ${words.banaani.fi}.`);
+```
+
+Words with two pictures (käsi, jalka, mee pois) also get a second prop type named `<id>-2`.
+
+Most pictures are Mulberry Symbols by Steve Lee, under CC BY-SA 4.0, which requires credit when you publish them. Three are custom artwork. See [assets/icons/LICENSE.md](assets/icons/LICENSE.md).
 
 ## Writing a lesson
 
@@ -81,13 +118,15 @@ Emotions: `neutral`, `happy`, `veryHappy`, `surprised`, `confused`, `thinking`, 
 | --- | --- |
 | `pointAt(target, options)` | Point at a point `{x, y}`, a prop id, or `'self'` (points at its own face, for "minä"). Options: `hand`, `hold` (ms before the hand goes back to rest) |
 | `pickUp(propId, options)` | Move a hand to the prop, grip it and lift it. Option: `hand` |
-| `putDown({x, y}, options)` | Put a held prop down with its centre at that point. Options: `hand` or `prop` |
+| `putDown({x, y}, options)` | Put a held prop down with its centre at that point, or use `{x, bottom}` to stand it on a surface. Options: `hand` or `prop` |
 | `holdUp()` | Lift a held prop beside the face to show it |
 | `wave()` | Wave with a free hand |
 | `thumbsUp()` | Thumbs up with a free hand |
 | `rest(side)` | Move one hand or both back to rest. Held props stay held |
-| `addProp(type, {id, x, y, scale})` | Put a prop on the stage and return its id |
+| `addProp(type, {id, x, y, bottom, scale})` | Put a prop on the stage and return its id. Give `y` for its centre, or `bottom` to stand it on a surface at that height |
 | `registerProp(type, markup, {grip})` | Add a new prop type from SVG markup centred on 0,0. `grip` is the point the hand holds |
+| `registerImageProp(type, href, {size, box, grip})` | Add a new prop type from an image file |
+| `labelOf(id)` | The word a prop on stage stands for |
 | `moveProp(id, x, y, {ms})`, `removeProp(id)` | Move or remove a prop |
 | `wait(ms)` | Pause in a lesson script |
 

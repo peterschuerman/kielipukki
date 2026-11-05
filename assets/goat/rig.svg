@@ -14,7 +14,8 @@
       #hand-template ....... one hand with every pose; the controller copies it
       [data-pose] .......... a hand pose (open, point, grip, thumbs-up)
       #props-library ....... sample props; each has data-grip="x y", the point
-                             a hand holds it by
+                             a hand holds it by,
+                             and data-bottom its lowest point below the centre
     Pivot points for rotation are stored as data-pivot="x y".
   -->
   <defs>
@@ -236,23 +237,23 @@
 
   <!-- Sample props, each centred on 0,0. data-grip is where a hand holds it. -->
   <g id="props-library" transform="translate(-400 -400)">
-    <g data-prop="apple" data-grip="0 38" data-label="omena">
+    <g data-prop="apple" data-grip="0 38" data-bottom="56" data-label="omena">
       <path d="M0 -26 C -18 -44, -56 -40, -56 -2 C -56 34, -26 56, -12 50 C -6 47, 6 47, 12 50 C 26 56, 56 34, 56 -2 C 56 -40, 18 -44, 0 -26 Z" fill="#e5484d" stroke="#111" stroke-width="12" stroke-linejoin="round"/>
       <path d="M0 -26 Q2 -46 12 -56" fill="none" stroke="#111" stroke-width="10" stroke-linecap="round"/>
       <path d="M10 -40 Q30 -62 48 -50 Q32 -30 10 -40 Z" fill="#46a758" stroke="#111" stroke-width="8" stroke-linejoin="round"/>
       <path d="M-34 -14 Q-36 -26 -26 -30" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity="0.8"/>
     </g>
-    <g data-prop="book" data-grip="0 34" data-label="kirja">
+    <g data-prop="book" data-grip="0 34" data-bottom="44" data-label="kirja">
       <rect x="-48" y="-38" width="96" height="76" rx="8" fill="#3e63dd" stroke="#111" stroke-width="12" stroke-linejoin="round"/>
       <rect x="-48" y="26" width="96" height="12" fill="#f5f0e1" stroke="#111" stroke-width="8"/>
       <path d="M-24 -16 L24 -16 M-24 0 L12 0" stroke="#fff" stroke-width="8" stroke-linecap="round"/>
     </g>
-    <g data-prop="cup" data-grip="-4 30" data-label="kuppi">
+    <g data-prop="cup" data-grip="-4 30" data-bottom="48" data-label="kuppi">
       <path d="M36 -14 C 62 -16, 62 26, 32 22" fill="none" stroke="#111" stroke-width="12" stroke-linecap="round"/>
       <path d="M-40 -32 L40 -32 L34 34 Q32 42 24 42 L-24 42 Q-32 42 -34 34 Z" fill="#f5c542" stroke="#111" stroke-width="12" stroke-linejoin="round"/>
       <path d="M-14 -46 Q-20 -56 -12 -64 M6 -46 Q0 -56 8 -64" fill="none" stroke="#999" stroke-width="7" stroke-linecap="round"/>
     </g>
-    <g data-prop="key" data-grip="-26 0" data-label="avain">
+    <g data-prop="key" data-grip="-26 0" data-bottom="31" data-label="avain">
       <circle cx="-30" cy="0" r="22" fill="#e2b33a" stroke="#111" stroke-width="12"/>
       <circle cx="-30" cy="0" r="7" fill="#fff" stroke="#111" stroke-width="6"/>
       <path d="M-10 -9 L60 -9 L60 9 L54 9 L54 30 L40 30 L40 9 L32 9 L32 24 L18 24 L18 9 L-10 9 Z" fill="#e2b33a" stroke="#111" stroke-width="8" stroke-linejoin="round"/>

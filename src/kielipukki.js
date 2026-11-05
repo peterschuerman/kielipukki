@@ -131,6 +131,7 @@ export class Kielipukki {
         node: p,
         grip: (p.dataset.grip || '0 0').split(/\s+/).map(Number),
         label: p.dataset.label || p.dataset.prop,
+        bottom: Number(p.dataset.bottom || 50),
       };
     });
     this.props = {};
@@ -336,8 +337,8 @@ export class Kielipukki {
   }
 
   /**
-   * Put a held prop down so its centre is at {x, y}.
-   * options: hand, or prop (id) to choose which held prop.
+   * Put a held prop down so its centre is at {x, y}, or so its lowest point
+   * is at {x, bottom}. options: hand, or prop (id) to choose which held prop.
    */
   async putDown(target, options = {}) {
     let hand = options.hand ? this.hands[options.hand] : null;
@@ -345,7 +346,9 @@ export class Kielipukki {
     if (!hand) hand = Object.values(this.hands).find(h => h.holding);
     if (!hand || !hand.holding) return;
     const prop = hand.holding;
-    const p = this._resolvePoint(target);
+    const p = target.bottom != null
+      ? { x: target.x, y: target.bottom - prop.bottomOffset * prop.scale }
+      : this._resolvePoint(target);
     const gripWorld = { x: p.x + prop.grip[0] * prop.scale, y: p.y + prop.grip[1] * prop.scale };
     this.lookAt(p);
     await this._moveHand(hand, this._handAt(hand, gripWorld, -90), options.ms ?? 550);
@@ -402,9 +405,11 @@ export class Kielipukki {
 
   /**
    * Put a prop on the stage. type is a prop name from the rig (apple, book,
-   * cup, key) or one added with registerProp. Returns the prop id.
+   * cup, key) or one added with registerProp / registerImageProp.
+   * Give y for the prop's centre, or bottom to set its lowest point on a
+   * surface at that height. Returns the prop id.
    */
-  addProp(type, { id, x = 900, y = 560, scale } = {}) {
+  addProp(type, { id, x = 900, y = 560, bottom, scale } = {}) {
     const def = this.propTypes[type];
     if (!def) throw new Error(`Unknown prop "${type}". Known: ${Object.keys(this.propTypes).join(', ')}`);
     id = id || `${type}-${++this._propCount}`;
@@ -413,7 +418,9 @@ export class Kielipukki {
     const node = def.node.cloneNode(true);
     wrap.appendChild(node);
     this.layers.props.appendChild(wrap);
-    const prop = { id, type, el: wrap, x, y, scale: scale ?? this.goat.s * this.options.handScale, grip: def.grip, label: def.label, holder: null };
+    scale = scale ?? this.goat.s * this.options.handScale;
+    if (bottom != null) y = bottom - def.bottom * scale;
+    const prop = { id, type, el: wrap, x, y, scale, grip: def.grip, bottomOffset: def.bottom, label: def.label, holder: null };
     this.props[id] = prop;
     this._placeProp(prop);
     return id;
@@ -425,6 +432,27 @@ export class Kielipukki {
     const g = el('g', { 'data-prop': type });
     for (const child of [...doc.documentElement.childNodes]) g.appendChild(document.importNode(child, true));
     this.propTypes[type] = { node: g, grip, label };
+  }
+
+  /**
+   * Add a prop type from an image (an SVG, PNG or WebP URL or data: URI).
+   * box is where the drawing sits inside the image's square, as fractions
+   * [left, top, right, bottom] (see tools/measure-icons.mjs). The drawing is
+   * centred on 0,0 and scaled so its larger side is `size` units.
+   * grip defaults to a point halfway between the centre and the bottom.
+   */
+  registerImageProp(type, href, { size = 130, box = [0, 0, 1, 1], grip, label = type } = {}) {
+    const [x0, y0, x1, y1] = box;
+    const k = size / Math.max(x1 - x0, y1 - y0, 0.05);  // units per image square
+    const g = el('g', { 'data-prop': type });
+    g.appendChild(el('image', { href, x: -((x0 + x1) / 2) * k, y: -((y0 + y1) / 2) * k, width: k, height: k }));
+    const bottom = ((y1 - y0) / 2) * k;
+    this.propTypes[type] = { node: g, grip: grip || [0, bottom * 0.5], label, bottom };
+  }
+
+  /** The vocabulary word of a prop on stage (its label), for use in say(). */
+  labelOf(id) {
+    return this._prop(id).label;
   }
 
   removeProp(id) {
