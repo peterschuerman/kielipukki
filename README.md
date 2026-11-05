@@ -63,6 +63,23 @@ Words with two pictures (käsi, jalka, mee pois) also get a second prop type nam
 
 Most pictures are Mulberry Symbols by Steve Lee, under CC BY-SA 4.0, which requires credit when you publish them. Three are custom artwork. See [assets/icons/LICENSE.md](assets/icons/LICENSE.md).
 
+## Giving things to Kielipukki
+
+`enableDragging()` lets the viewer drag props with the mouse or a finger. When a prop comes near his face or his outstretched hand, he takes it, says "Kiitos!", holds it up, names it ("Tämä on omena.") and puts it back where it was picked up. A prop let go far from him slides back.
+
+`askFor(id)` asks for one prop and waits until the viewer gives it:
+
+```js
+goat.enableDragging(true);
+const { given } = await goat.askFor('omena');   // says "Anna mulle omena!"
+```
+
+For the right prop he says "Kiitos! Tämä on omena." and `askFor` resolves with `{ given: true }`. For another prop he says "Kiitos, mutta tämä on kirja.", shakes his head, puts it back and asks again. `cancelAsk()` stops waiting and resolves with `{ given: false }`. The lines can be changed with the `ask`, `thanks`, `name` and `wrong` options, for example to use the partitive for mass nouns:
+
+```js
+await goat.askFor('vesi', { ask: 'Anna mulle vettä!' });
+```
+
 ## Sound
 
 `src/sound.js` adds speech and sound effects. Pass a `KielipukkiSound` when creating the goat:
@@ -147,6 +164,9 @@ Emotions: `neutral`, `happy`, `veryHappy`, `surprised`, `confused`, `thinking`, 
 | `registerImageProp(type, href, {size, box, grip})` | Add a new prop type from an image file |
 | `labelOf(id)` | The word a prop on stage stands for |
 | `moveProp(id, x, y, {ms})`, `removeProp(id)` | Move or remove a prop |
+| `enableDragging(on, {reach})` | Let the viewer drag props to the goat. `reach` is how close counts as near, in stage units |
+| `askFor(id, options)` | Ask for a prop ("Anna mulle ...!") and wait until the viewer drags it to him |
+| `cancelAsk()` | Stop waiting for the prop asked for |
 | `wait(ms)` | Pause in a lesson script |
 
 ![Hand poses and sample props](docs/hands.png)

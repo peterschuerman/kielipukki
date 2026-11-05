@@ -37,6 +37,7 @@ const HAND_PLACES = {
   wave:   { x: 540, y: 160, rot: -80 },
   thumb:  { x: 520, y: 430, rot: 0 },
   self:   { x: 525, y: 360, rot: 180 },
+  ask:    { x: 560, y: 450, rot: -25 },
 };
 const GRIP_ANCHOR = { x: 31, y: 0 };  // where a held prop's grip point sits, in hand units
 const FINGERTIP = 100;                // distance from palm centre to fingertip, in hand units
@@ -146,6 +147,13 @@ export class Kielipukki {
     this.setEmotion('happy', { ms: 0 });
 
     container.appendChild(svg);
+    this._dragOn = false;
+    this._asking = null;
+    this._receiving = false;
+    svg.addEventListener('pointerdown', e => this._dragStart(e));
+    svg.addEventListener('pointermove', e => this._dragMove(e));
+    svg.addEventListener('pointerup', e => this._dragEnd(e));
+    svg.addEventListener('pointercancel', e => this._dragEnd(e));
     this._frame = this._frame.bind(this);
     this._raf = requestAnimationFrame(this._frame);
     if (o.autoBlink) this._scheduleBlink();
@@ -448,6 +456,7 @@ export class Kielipukki {
     const prop = { id, type, el: wrap, x, y, scale, grip: def.grip, bottomOffset: def.bottom, label: def.label, holder: null };
     this.props[id] = prop;
     this._placeProp(prop);
+    this._dragStyle(prop);
     return id;
   }
 
@@ -503,6 +512,180 @@ export class Kielipukki {
     cancelAnimationFrame(this._raf);
     clearTimeout(this._blinkTimer);
     this.svg.remove();
+  }
+
+  // ---------------------------------------------------------------- giving
+
+  /**
+   * Let the viewer drag props with the mouse or a finger. When a prop is
+   * dragged near the goat, he takes it, says thanks, names it and puts it
+   * back where it was picked up. During askFor() he also checks that it is
+   * the prop he asked for.
+   * options.reach: how close (stage units from the face) counts as near.
+   */
+  enableDragging(on = true, { reach } = {}) {
+    this._dragOn = on;
+    if (reach) this._reach = reach;
+    for (const p of Object.values(this.props)) this._dragStyle(p);
+  }
+
+  /**
+   * Ask the viewer to give him a prop, and wait until they do.
+   * options: ask (the request, default "Anna mulle <word>!"), thanks
+   * (default "Kiitos!"), name (what he says while holding it up, default
+   * "Tämä on <word>."), wrong (a function (givenWord, wantedWord) returning
+   * what he says for the wrong prop).
+   * Resolves to { given: true } when the right prop arrives, or
+   * { given: false } if cancelAsk() is called first.
+   */
+  async askFor(id, options = {}) {
+    const want = this._prop(id);
+    this.cancelAsk();
+    this.enableDragging(true);
+    const ask = options.ask ?? `Anna mulle ${want.label}!`;
+    const asking = (this._asking = { id, options, ask });
+    const done = new Promise(r => { asking.resolve = r; });
+    await this.setEmotion('happy');
+    this._reachOut();
+    this.say(ask, { hold: Infinity });
+    return done;
+  }
+
+  /** Stop waiting for a prop asked for with askFor(). */
+  cancelAsk() {
+    const a = this._asking;
+    if (!a) return;
+    this._asking = null;
+    this.hideBubble();
+    a.resolve({ given: false });
+    if (!this._receiving) this.rest();
+  }
+
+  _dragStyle(prop) {
+    prop.el.style.cursor = this._dragOn ? 'grab' : '';
+    prop.el.style.touchAction = this._dragOn ? 'none' : '';
+  }
+
+  _stagePoint(e) {
+    const pt = this.svg.createSVGPoint();
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    return pt.matrixTransform(this.svg.getScreenCTM().inverse());
+  }
+
+  _dragStart(e) {
+    if (!this._dragOn || this._drag || this._receiving) return;
+    const node = e.target.closest?.('[data-prop-id]');
+    const prop = node && this.props[node.dataset.propId];
+    if (!prop || prop.holder) return;
+    e.preventDefault();
+    const p = this._stagePoint(e);
+    this._drag = { prop, pointer: e.pointerId, dx: prop.x - p.x, dy: prop.y - p.y, from: { x: prop.x, y: prop.y } };
+    try { this.svg.setPointerCapture(e.pointerId); } catch {}
+    this.svg.style.cursor = 'grabbing';
+    this.layers.props.appendChild(prop.el);  // draw it above the other props
+    this._tween(prop, { scale: prop.scale * 1.08 }, 120, EASE.out);
+    prop.dragScale = prop.scale;
+    this._sfx('grab', 0.5);
+    this.lookAt(prop.id, { ms: 120 });
+    this._reachOut();
+  }
+
+  _dragMove(e) {
+    const d = this._drag;
+    if (!d || e.pointerId !== d.pointer) return;
+    const p = this._stagePoint(e);
+    d.prop.x = p.x + d.dx;
+    d.prop.y = p.y + d.dy;
+    this.lookAt(d.prop.id, { ms: 60 });
+    if (this._isNear(d.prop)) this._take(d);
+  }
+
+  _dragEnd(e) {
+    const d = this._drag;
+    if (!d || e.pointerId !== d.pointer) return;
+    this._drag = null;
+    this.svg.style.cursor = '';
+    const prop = d.prop;
+    if (this._isNear(prop)) { this._take(d); return; }
+    // Let go too far away: the prop slides back.
+    this._tween(prop, { x: d.from.x, y: d.from.y, scale: d.prop.dragScale / 1.08 }, 350, EASE.inOut)
+      .then(() => this._sfx('drop', 0.5));
+    this.lookAt(null);
+    if (!this._asking) this.rest();
+  }
+
+  _isNear(prop) {
+    const face = this._g(256, 320);
+    const reach = this._reach ?? 300 * this.goat.s;
+    if (Math.hypot(prop.x - face.x, prop.y - face.y) < reach) return true;
+    const hand = Object.values(this.hands).find(h => !h.holding && h.pose === 'open');
+    return !!hand && Math.hypot(prop.x - hand.x, prop.y - hand.y) < 90 * this.goat.s * hand.scale;
+  }
+
+  _reachOut() {
+    const hand = this._freeHand('right');
+    if (!hand) return;
+    this._setPose(hand, 'open');
+    this._moveHand(hand, this._handPlace(hand, 'ask'), 350);
+  }
+
+  // The prop was brought near: take it from the viewer and respond.
+  async _take(d) {
+    if (this._receiving) return;
+    this._drag = null;
+    try { this.svg.releasePointerCapture(d.pointer); } catch {}
+    this.svg.style.cursor = '';
+    const prop = d.prop;
+    this._tween(prop, { scale: prop.dragScale / 1.08 }, 0);
+    const hand = this._freeHand('right');
+    if (!hand) {
+      this._tween(prop, { x: d.from.x, y: d.from.y }, 350);
+      return;
+    }
+    this._receiving = true;
+    try {
+      const gripWorld = { x: prop.x + prop.grip[0] * prop.scale, y: prop.y + prop.grip[1] * prop.scale };
+      this._setPose(hand, 'open');
+      await this._moveHand(hand, this._handAt(hand, gripWorld, -90), 220, EASE.out);
+      this._setPose(hand, 'grip');
+      this._attach(prop, hand);
+      await this._respond(prop, hand, d.from);
+    } finally {
+      this._receiving = false;
+    }
+  }
+
+  async _respond(prop, hand, home) {
+    const asking = this._asking;
+    const right = !asking || asking.id === prop.id;
+    const o = asking?.options || {};
+    const wanted = asking && this.props[asking.id];
+    await this._moveHand(hand, this._handPlace(hand, 'holdUp'), 400, EASE.backOut);
+    this.lookAt(prop.id);
+    if (right) {
+      await this.setEmotion('veryHappy');
+      await this.say(o.thanks ?? 'Kiitos!', { hold: 150 });
+      this.lookAt(null);
+      await this.say(o.name ?? `Tämä on ${prop.label}.`, { hold: 300 });
+    } else {
+      await this.setEmotion('confused');
+      const wrong = o.wrong ? o.wrong(prop.label, wanted.label) : `Kiitos, mutta tämä on ${prop.label}.`;
+      await this.say(wrong, { hold: 300 });
+      await this.shake();
+    }
+    await this.putDown(home, { hand: hand.side });
+    if (right && asking) {
+      if (this._asking === asking) this._asking = null;
+      await this.setEmotion('happy');
+      asking.resolve({ given: true });
+    } else if (asking && this._asking === asking) {
+      await this.setEmotion('happy');
+      this._reachOut();
+      this.say(asking.ask, { hold: Infinity });
+    } else {
+      await this.setEmotion('happy');
+    }
   }
 
   // ---------------------------------------------------------------- internals

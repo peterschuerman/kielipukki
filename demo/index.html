@@ -44,6 +44,7 @@
   select { font: inherit; font-size: 15px; font-weight: 600; color: var(--ink); background: var(--surface);
            border: 2px solid var(--line); border-radius: 10px; padding: 5px 8px; max-width: 220px; }
   #voice-note { color: var(--muted); font-size: 14px; flex-basis: 100%; }
+  #give-note { color: var(--muted); font-size: 14px; }
   #words { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
   #words button { display: grid; justify-items: center; gap: 2px; padding: 8px 4px 6px; border-color: var(--soft); }
   #words button:hover { border-color: var(--line); }
@@ -64,6 +65,10 @@
   <div id="stage"></div>
   <div class="controls">
     <div class="row"><span>Lesson</span><button class="primary" id="lesson">Play sample lesson</button></div>
+    <div class="row"><span>Give</span>
+      <button class="primary" id="game">Play "Anna mulle"</button><button id="stop-game" hidden>Stop</button>
+      <small id="give-note">Drag a picture from the table to Kielipukki.</small>
+    </div>
     <div class="row"><span>Sound</span>
       <label class="check"><input type="checkbox" id="speech" checked> Speech</label>
       <label class="check"><input type="checkbox" id="effects" checked> Sound effects</label>
@@ -149,8 +154,46 @@
   listVoices();
   for (const elm of [speechBox, effectsBox, voiceSel, rateIn]) elm.addEventListener('change', applySound);
 
+  // The viewer can drag pictures to the goat at any time.
+  goat.enableDragging(true);
+
   let running = Promise.resolve();
-  const run = fn => () => { running = running.then(fn).catch(e => console.error(e)); return running; };
+  const run = fn => () => { stopGame(); running = running.then(fn).catch(e => console.error(e)); return running; };
+
+  // "Anna mulle" game: he asks for something on the table; drag it to him.
+  let playing = false;
+  const gameBtn = $('game'), stopBtn = $('stop-game'), giveNote = $('give-note');
+  const showGame = () => {
+    gameBtn.hidden = playing;
+    stopBtn.hidden = !playing;
+    giveNote.textContent = playing
+      ? 'Drag the picture he asks for to Kielipukki.'
+      : 'Drag a picture from the table to Kielipukki.';
+  };
+  function stopGame() {
+    if (!playing) return;
+    playing = false;
+    goat.cancelAsk();
+    showGame();
+  }
+  gameBtn.onclick = async () => {
+    await running;
+    await putBack();
+    playing = true;
+    showGame();
+    let last = null;
+    while (playing) {
+      const choices = slots.filter(id => id !== last);
+      const id = choices[Math.floor(Math.random() * choices.length)];
+      last = id;
+      const result = await goat.askFor(id);
+      if (!result.given) break;
+      await goat.wait(500);
+    }
+    playing = false;
+    showGame();
+  };
+  stopBtn.onclick = stopGame;
   const held = () => Object.values(goat.hands).find(h => h.holding)?.holding;
   async function putBack() {
     for (const h of Object.values(goat.hands)) if (h.holding) await goat.putDown(home(h.holding.id), { prop: h.holding.id });
