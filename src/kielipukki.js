@@ -38,6 +38,8 @@ const HAND_PLACES = {
   thumb:  { x: 520, y: 430, rot: 0 },
   self:   { x: 525, y: 360, rot: 180 },
   ask:    { x: 560, y: 450, rot: -25 },
+  windUp: { x: 520, y: 40, rot: -70 },
+  throw:  { x: 300, y: -10, rot: -150 },
 };
 const GRIP_ANCHOR = { x: 31, y: 0 };  // where a held prop's grip point sits, in hand units
 const FINGERTIP = 100;                // distance from palm centre to fingertip, in hand units
@@ -93,7 +95,7 @@ export class Kielipukki {
     svg.appendChild(document.importNode(rig.querySelector('defs'), true));
     this.svg = svg;
     this.layers = {};
-    for (const name of ['background', 'goat', 'props', 'hands', 'bubble', 'foreground']) {
+    for (const name of ['background', 'behind', 'goat', 'props', 'hands', 'bubble', 'foreground']) {
       this.layers[name] = svg.appendChild(el('g', { 'data-layer': name }));
     }
 
@@ -551,6 +553,64 @@ export class Kielipukki {
     return done;
   }
 
+  /**
+   * Throw a prop over his shoulder and off the stage, then remove it.
+   * If the prop is not held, he picks it up first.
+   */
+  async throwAway(id, { hand: side } = {}) {
+    const prop = this._prop(id);
+    if (!prop.holder) await this.pickUp(id, { hand: side });
+    const hand = prop.holder;
+    if (!hand) return;
+    this.lookAt(null);
+    await this.setEmotion('determined', { ms: 120 });
+    // Wind up beside the head, then swing over it.
+    await this._moveHand(hand, this._handPlace(hand, 'windUp'), 320, EASE.out);
+    this._sfx('whoosh', 1);
+    const swing = this._moveHand(hand, this._handPlace(hand, 'throw'), 220, EASE.in);
+    await this.wait(120);
+    // Let go: the prop keeps its stage position and flies on by itself.
+    const anchor = this._handPoint(hand, GRIP_ANCHOR.x, GRIP_ANCHOR.y);
+    const start = { x: anchor.x - prop.grip[0] * prop.scale, y: anchor.y - prop.grip[1] * prop.scale };
+    this._detach(prop, start, { sound: false });
+    this._setPose(hand, 'open');
+    const away = hand.side === 'right' ? -1 : 1;  // over the opposite shoulder
+    const endX = away < 0 ? -260 : this.options.width + 260;
+    const apexY = Math.min(start.y - 40, this._g(0, -60).y);  // just above the horns
+    const endY = this._g(0, 380).y;
+    const flight = Promise.all([
+      this._tween(prop, { x: endX, rot: (prop.rot || 0) + away * 620, scale: prop.scale * 0.55 }, 1200, EASE.linear),
+      (async () => {
+        await this._tween(prop, { y: apexY }, 520, EASE.out);
+        this.layers.behind.appendChild(prop.el);  // from here on it passes behind him
+        await this._tween(prop, { y: endY }, 680, EASE.in);
+      })(),
+    ]);
+    await swing;
+    this.setEmotion('wink');
+    this.rest(hand.side);
+    await flight;
+    this.removeProp(id);
+  }
+
+  /**
+   * Add a prop that falls from above the stage and lands with its centre at
+   * x, y (or its lowest point at bottom). Returns the prop id.
+   */
+  async dropIn(type, { id, x = 900, y, bottom, scale } = {}) {
+    id = this.addProp(type, { id, x, y: y ?? 0, bottom, scale });
+    const prop = this.props[id];
+    const landY = prop.y;
+    const lean = (Math.random() - 0.5) * 30;
+    Object.assign(prop, { y: -160, rot: lean });
+    await this._tween(prop, { y: landY, rot: 0 }, 520, EASE.in);
+    this._sfx('drop');
+    await this._tween(prop, { y: landY - 26 * prop.scale }, 150, EASE.out);
+    await this._tween(prop, { y: landY }, 150, EASE.in);
+    this._sfx('drop', 0.4);
+    return id;
+  }
+
   /** Stop waiting for a prop asked for with askFor(). */
   cancelAsk() {
     const a = this._asking;
@@ -674,7 +734,15 @@ export class Kielipukki {
       await this.say(wrong, { hold: 300 });
       await this.shake();
     }
-    await this.putDown(home, { hand: hand.side });
+    // onReceive decides whether he puts the prop back or throws it away.
+    const action = this.onReceive?.(prop, { asked: asking?.id ?? null, right }) || 'return';
+    if (action === 'throw') {
+      const id = prop.id;
+      await this.throwAway(id, { hand: hand.side });
+      await this.onThrown?.(id, home);
+    } else {
+      await this.putDown(home, { hand: hand.side });
+    }
     if (right && asking) {
       if (this._asking === asking) this._asking = null;
       await this.setEmotion('happy');
@@ -801,8 +869,8 @@ export class Kielipukki {
     hand.slot.appendChild(prop.el);
   }
 
-  _detach(prop, at) {
-    this._sfx('drop');
+  _detach(prop, at, { sound = true } = {}) {
+    if (sound) this._sfx('drop');
     prop.holder.holding = null;
     prop.holder = null;
     prop.x = at.x;
@@ -821,7 +889,7 @@ export class Kielipukki {
       prop.el.setAttribute('transform',
         `translate(${GRIP_ANCHOR.x} ${GRIP_ANCHOR.y}) scale(1 ${flip}) rotate(${-actual}) scale(${k}) translate(${-prop.grip[0]} ${-prop.grip[1]})`);
     } else {
-      prop.el.setAttribute('transform', `translate(${prop.x} ${prop.y}) scale(${prop.scale})`);
+      prop.el.setAttribute('transform', `translate(${prop.x} ${prop.y}) rotate(${prop.rot || 0}) scale(${prop.scale})`);
     }
   }
 

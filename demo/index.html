@@ -161,13 +161,39 @@
   const run = fn => () => { stopGame(); running = running.then(fn).catch(e => console.error(e)); return running; };
 
   // "Anna mulle" game: he asks for something on the table; drag it to him.
+  // The second time a thing is given to him in a game, he throws it over his
+  // shoulder and a new, randomly chosen thing falls into its place.
+  // Words left out of the game because "Anna mulle ___" does not fit them:
+  const NOT_IN_GAME = new Set(['anna', 'anna-mulle', 'ota', 'tuu-tanne', 'mee-pois', 'kato', 'istu', 'odota', 'ei',
+    'kaks', 'kolme', 'punainen', 'sininen', 'oranssi', 'keltainen', 'vihrea', 'violetti', 'harmaa', 'ruskea',
+    'musta', 'valkoinen', 'sade', 'lumi', 'tuuli']);
+  // Mass nouns take the partitive: "Anna mulle vettä!"
+  const PARTITIVE = { vesi: 'vettä', maito: 'maitoa', kahvi: 'kahvia', tee: 'teetä', voi: 'voita', raha: 'rahaa' };
+  const THROW_AFTER = 2;
+  let gives = {};
+  goat.onReceive = prop => {
+    if (!playing) return 'return';
+    gives[prop.id] = (gives[prop.id] || 0) + 1;
+    return gives[prop.id] >= THROW_AFTER ? 'throw' : 'return';
+  };
+  goat.onThrown = async id => {
+    const i = slots.indexOf(id);
+    if (i < 0) return;
+    const pool = Object.keys(words).filter(w => !NOT_IN_GAME.has(w) && !slots.includes(w) && w !== id);
+    const next = pool[Math.floor(Math.random() * pool.length)];
+    slots[i] = next;
+    delete gives[id];
+    slotRows();
+    await goat.dropIn(next, { id: next, x: SLOT_X[i], bottom: TABLE_TOP });
+  };
+
   let playing = false;
   const gameBtn = $('game'), stopBtn = $('stop-game'), giveNote = $('give-note');
   const showGame = () => {
     gameBtn.hidden = playing;
     stopBtn.hidden = !playing;
     giveNote.textContent = playing
-      ? 'Drag the picture he asks for to Kielipukki.'
+      ? 'Drag the picture he asks for to Kielipukki. The second time you give him something, he throws it away and a new one falls in.'
       : 'Drag a picture from the table to Kielipukki.';
   };
   function stopGame() {
@@ -180,13 +206,14 @@
     await running;
     await putBack();
     playing = true;
+    gives = {};
     showGame();
     let last = null;
     while (playing) {
       const choices = slots.filter(id => id !== last);
       const id = choices[Math.floor(Math.random() * choices.length)];
       last = id;
-      const result = await goat.askFor(id);
+      const result = await goat.askFor(id, PARTITIVE[id] ? { ask: `Anna mulle ${PARTITIVE[id]}!` } : {});
       if (!result.given) break;
       await goat.wait(500);
     }

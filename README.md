@@ -80,6 +80,19 @@ For the right prop he says "Kiitos! Tämä on omena." and `askFor` resolves with
 await goat.askFor('vesi', { ask: 'Anna mulle vettä!' });
 ```
 
+Two hooks change what he does with a prop he has been given:
+
+```js
+// Return 'throw' to have him throw it over his shoulder instead of putting it back.
+goat.onReceive = (prop, { asked, right }) => 'return';
+// Called after a throw, with the prop id and where it came from.
+goat.onThrown = async (id, from) => {
+  await goat.dropIn('pallo', { x: from.x, bottom: 592 });   // a new prop falls from above
+};
+```
+
+The demo's "Anna mulle" game uses these: the second time something is given to him in a game, he throws it away and a random new word falls into its place.
+
 ## Sound
 
 `src/sound.js` adds speech and sound effects. Pass a `KielipukkiSound` when creating the goat:
@@ -167,6 +180,8 @@ Emotions: `neutral`, `happy`, `veryHappy`, `surprised`, `confused`, `thinking`, 
 | `enableDragging(on, {reach})` | Let the viewer drag props to the goat. `reach` is how close counts as near, in stage units |
 | `askFor(id, options)` | Ask for a prop ("Anna mulle ...!") and wait until the viewer drags it to him |
 | `cancelAsk()` | Stop waiting for the prop asked for |
+| `throwAway(id)` | Throw a prop over his shoulder off the stage, and remove it |
+| `dropIn(type, {id, x, y, bottom})` | Add a prop that falls from above and bounces as it lands |
 | `wait(ms)` | Pause in a lesson script |
 
 ![Hand poses and sample props](docs/hands.png)
