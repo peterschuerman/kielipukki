@@ -485,12 +485,12 @@ export class Kielipukki {
     return id;
   }
 
-  /** Add a prop type from SVG markup centred on 0,0. grip is [x, y] in the same units. */
-  registerProp(type, markup, { grip = [0, 0], label = type } = {}) {
+  /** Add a prop type from SVG markup centred on 0,0. grip is [x, y] in the same units; bottom is its lowest point below 0. */
+  registerProp(type, markup, { grip = [0, 0], label = type, bottom = 50 } = {}) {
     const doc = new DOMParser().parseFromString(`<svg xmlns="${NS}">${markup}</svg>`, 'image/svg+xml');
     const g = el('g', { 'data-prop': type });
     for (const child of [...doc.documentElement.childNodes]) g.appendChild(document.importNode(child, true));
-    this.propTypes[type] = { node: g, grip, label };
+    this.propTypes[type] = { node: g, grip, label, bottom };
   }
 
   /**
@@ -527,6 +527,11 @@ export class Kielipukki {
     const prop = this._prop(id);
     if (prop.holder) return Promise.resolve();
     return this._tween(prop, { x, y }, ms);
+  }
+
+  /** Animate numeric fields of an object (a prop, a hand, goat.goat) to new values. */
+  tween(obj, to, ms = 400, ease = EASE.inOut) {
+    return this._tween(obj, to, ms, ease);
   }
 
   wait(ms) {
@@ -761,43 +766,76 @@ export class Kielipukki {
     return pt.matrixTransform(this.svg.getScreenCTM().inverse());
   }
 
+  // Pointer handling. A press on a prop becomes a click if the pointer
+  // hardly moves, or a drag once it moves more than a few units.
+  // Lesson hooks (all optional):
+  //   onPropClick(prop)            a prop was clicked or tapped
+  //   canDrag(prop) -> bool        whether this prop may be dragged now
+  //   canReceive(prop) -> bool     whether he takes it when it comes near him
+  //   onDrop(prop, point, from)    let go away from him; return true to keep it
+  //                                where it is (the hook then moves it), false
+  //                                to let it slide back
+  //   onGiven(prop, hand, from)    replaces his response after taking a prop
   _dragStart(e) {
-    if (!this._dragOn || this._drag || this._receiving) return;
+    if (this._press || this._drag || this._receiving) return;
     const node = e.target.closest?.('[data-prop-id]');
     const prop = node && this.props[node.dataset.propId];
     if (!prop || prop.holder) return;
+    const draggable = this._dragOn && prop.draggable !== false && (this.canDrag ? this.canDrag(prop) : true);
+    if (!draggable && !this.onPropClick) return;
     e.preventDefault();
     const p = this._stagePoint(e);
-    this._drag = { prop, pointer: e.pointerId, dx: prop.x - p.x, dy: prop.y - p.y, from: { x: prop.x, y: prop.y } };
+    this._press = { prop, pointer: e.pointerId, start: p, draggable, dx: prop.x - p.x, dy: prop.y - p.y, from: { x: prop.x, y: prop.y } };
     try { this.svg.setPointerCapture(e.pointerId); } catch {}
-    this.svg.style.cursor = 'grabbing';
-    this.layers.props.appendChild(prop.el);  // draw it above the other props
-    this._tween(prop, { scale: prop.scale * 1.08 }, 120, EASE.out);
-    prop.dragScale = prop.scale;
-    this._sfx('grab', 0.5);
-    this.lookAt(prop.id, { ms: 120 });
-    this._reachOut();
+  }
+
+  _receivable(prop) {
+    return this.canReceive ? !!this.canReceive(prop) : true;
   }
 
   _dragMove(e) {
-    const d = this._drag;
-    if (!d || e.pointerId !== d.pointer) return;
+    const pr = this._press;
+    if (!pr || e.pointerId !== pr.pointer) return;
     const p = this._stagePoint(e);
+    if (!this._drag) {
+      if (!pr.draggable || Math.hypot(p.x - pr.start.x, p.y - pr.start.y) < 6) return;
+      this._drag = pr;
+      const prop = pr.prop;
+      this.svg.style.cursor = 'grabbing';
+      this.layers.props.appendChild(prop.el);  // draw it above the other props
+      prop.dragScale = prop.scale;
+      this._tween(prop, { scale: prop.scale * 1.08 }, 120, EASE.out);
+      this._sfx('grab', 0.5);
+      this.lookAt(prop.id, { ms: 120 });
+      if (this._receivable(prop)) this._reachOut();
+    }
+    const d = this._drag;
     d.prop.x = p.x + d.dx;
     d.prop.y = p.y + d.dy;
     this.lookAt(d.prop.id, { ms: 60 });
-    if (this._isNear(d.prop)) this._take(d);
+    if (this._receivable(d.prop) && this._isNear(d.prop)) this._take(d);
   }
 
   _dragEnd(e) {
+    const pr = this._press;
+    if (!pr || e.pointerId !== pr.pointer) return;
+    this._press = null;
+    try { this.svg.releasePointerCapture(e.pointerId); } catch {}
+    if (!this._drag) {
+      this.onPropClick?.(pr.prop);
+      return;
+    }
     const d = this._drag;
-    if (!d || e.pointerId !== d.pointer) return;
     this._drag = null;
     this.svg.style.cursor = '';
     const prop = d.prop;
-    if (this._isNear(prop)) { this._take(d); return; }
+    if (this._receivable(prop) && this._isNear(prop)) { this._take(d); return; }
+    if (this.onDrop && this.onDrop(prop, { x: prop.x, y: prop.y }, d.from)) {
+      this._tween(prop, { scale: d.prop.dragScale }, 120);
+      return;
+    }
     // Let go too far away: the prop slides back.
-    this._tween(prop, { x: d.from.x, y: d.from.y, scale: d.prop.dragScale / 1.08 }, 350, EASE.inOut)
+    this._tween(prop, { x: d.from.x, y: d.from.y, scale: d.prop.dragScale }, 350, EASE.inOut)
       .then(() => this._sfx('drop', 0.5));
     this.lookAt(null);
     if (!this._asking) this.rest();
@@ -822,10 +860,11 @@ export class Kielipukki {
   async _take(d) {
     if (this._receiving) return;
     this._drag = null;
+    this._press = null;
     try { this.svg.releasePointerCapture(d.pointer); } catch {}
     this.svg.style.cursor = '';
     const prop = d.prop;
-    this._tween(prop, { scale: prop.dragScale / 1.08 }, 0);
+    this._tween(prop, { scale: prop.dragScale }, 0);
     const hand = this._freeHand('right');
     if (!hand) {
       this._tween(prop, { x: d.from.x, y: d.from.y }, 350);
@@ -838,7 +877,8 @@ export class Kielipukki {
       await this._moveHand(hand, this._handAt(hand, gripWorld, -90), 220, EASE.out);
       this._setPose(hand, 'grip');
       this._attach(prop, hand);
-      await this._respond(prop, hand, d.from);
+      if (this.onGiven) await this.onGiven(prop, hand, d.from);
+      else await this._respond(prop, hand, d.from);
     } finally {
       this._receiving = false;
     }

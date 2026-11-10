@@ -12,7 +12,7 @@ The rig is loaded with `fetch`, so the page must be served over HTTP (opening th
 python3 -m http.server 8000
 ```
 
-Then open http://localhost:8000/demo/. The buttons run each action, and "Play sample lesson" runs a short scripted lesson. In the browser console, `goat` is the character, so you can try calls such as `goat.pointAt('kuppi')`.
+Then open http://localhost:8000/demo/ for the character demo, or http://localhost:8000/lessons/ for the grammar lessons (see Grammar lessons below). In the demo, the buttons run each action, and "Play sample lesson" runs a short scripted lesson. In the browser console, `goat` is the character, so you can try calls such as `goat.pointAt('kuppi')`.
 
 ## Files
 
@@ -26,15 +26,62 @@ Then open http://localhost:8000/demo/. The buttons run each action, and "Play sa
 | `src/icons.js` | Registers the vocabulary pictures as props |
 | `src/sound.js` | Finnish speech and sound effects |
 | `demo/index.html` | Demo page, word picker and sample lesson |
-| `tools/build-standalone.mjs` | Builds `dist/kielipukki.html`, the demo as one file that works without a server |
+| `lessons/index.html` | Grammar lesson page |
+| `src/lesson/` | Lesson engine, progress tracking, scene drawings, and one file per module in `modules/` |
+| `tools/build-standalone.mjs` | Builds `dist/kielipukki.html` (the demo) and `dist/kielipukki-lessons.html` (the lessons), each as one file that works without a server |
 | `tools/measure-icons.mjs` | Measures each picture's drawn area and stores it in `icons.json` |
 | `tools/render-previews.mjs` | Renders the preview images in `docs/` |
 
-To get the demo as one file you can open directly or send to someone:
+To get the demo and the lessons as single files you can open directly or send to someone:
 
 ```bash
 node tools/build-standalone.mjs
 ```
+
+## Grammar lessons
+
+`lessons/index.html` runs grammar modules with Kielipukki as the tutor. The design follows the "Finnish Grammar Modules" design doc: the tutor speaks only Finnish, the learner answers by acting (clicking and dragging), the things on screen share the same words so only the grammar form decides the answer, and after a mismatch the tutor describes what the learner actually did ("Otit pienemmän laatikon.") and repeats the request. He never says "wrong".
+
+Each module has five stages:
+
+1. **Watch**: Kielipukki points and narrates. Clicking things makes him describe them. "Next scene" goes on.
+2. **Choose**: he says a sentence and the learner clicks the thing it means (6 tasks).
+3. **Carry out**: he gives an instruction and the learner drags (6 tasks). "Anna minulle ..." means drag it to him.
+4. **Mixed**: tasks from stages 2 and 3 in random order (10 tasks).
+5. **Speech** (optional): a thing glows and the learner says what he should take. This uses the browser's speech recognition (Chrome or Edge) and the microphone, and can be skipped.
+
+"Repeat" makes him say the sentence again, a little slower. Pressing it a second time in the same task also makes him point at the answer; that task then does not count towards Understands.
+
+### Progress
+
+Progress is kept in the browser (`localStorage`), per the design doc's tracking rules:
+
+- **Understands**: a form answered correctly on the first try, in stage 2 or 3, on two separate days.
+- **Produces**: a form said correctly in stage 5.
+- **Module complete**: stage 4 finished with at most one mismatch in five tasks (2 of 10), on two separate days.
+
+The diagnostic's starting values are set per module: in Module 4, the comparative forms start as "Meaning recognized".
+
+### Module 4: Vertailu (comparative and superlative)
+
+The first module built. Its scenes:
+
+- **Boxes**: three sizes. "Ota isompi laatikko." "Laita pienempi laatikko isomman päälle." "Laita omena isoimpaan laatikkoon." "Anna minulle isoin laatikko."
+- **Shop**: books and coats with price tags (halpa, kallis), books with star ratings (hyvä, parempi, paras), flowers from wilted to fresh (ruma, kaunis), and books with a reader's face from asleep to fascinated (tylsä, kiinnostava). "Tämä kirja on kalliimpi kuin tuo. Anna minulle halvempi kirja."
+- **Family**: parents of different heights (pitkä, lyhyt), two boys and three children of different ages (vanha, nuori). "Kuka on perheen nuorin lapsi?" "Anna pallo vanhemmalle pojalle." "Anna hattu pidemmälle."
+
+Things that only need to be looked at use the Mulberry icons; the boxes and the family are drawn in Kielipukki's style. Positions are shuffled every task, so where something stands never gives the answer away.
+
+### Adding a module
+
+A module is a file in `src/lesson/modules/` that exports `{ id, title, forms, initial, scenes, tasks, speech }`:
+
+- `forms`: the forms it teaches, each with a label and a Finnish example (shown in the progress table).
+- `scenes`: for stage 1, each with `setup(ctx)`, `watch(ctx, layout, say)` and `narrate(ctx, layout, id, say)`.
+- `tasks`: each with `stages` (which of 2, 3, 4 it appears in) and `make(ctx)`, which sets up the stage and returns a task: `kind` ('click', 'drop' or 'give'), `say` (the instruction), `accept(action)`, `describe(action, ok)` (what he says about what the learner did), `forms`, `hint`, and for drops `movable`, `targets` and `place`.
+- `speech`: stage 5 tasks, each returning `target`, `forms` and `match(transcripts)`.
+
+`ctx` (a `SceneContext` in `src/lesson/engine.js`) has helpers to draw backgrounds, add boxes, icons with price tags, star ratings or reader faces, and people, and to find what is under a dropped thing.
 
 ## Vocabulary icons
 

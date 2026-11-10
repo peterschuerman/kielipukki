@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Kielipukki Grammar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  /* Layout: one column. Stage steps, the stage, lesson controls, settings, then progress. */
+  :root {
+    --bg: #eef0f3; --surface: #ffffff; --ink: #14161a; --muted: #5d6470;
+    --line: #14161a; --soft: #d7dbe2; --accent: #3e63dd; --accent-ink: #ffffff; --hover: #e6ebfb;
+    --done: #2f8f4e; --done-bg: #e3f4e8; --mid: #a86b00; --mid-bg: #fdf1d8; --new-bg: #eceef2;
+    --font: Nunito, "Trebuchet MS", system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+    --bg: #15171c; --surface: #22252c; --ink: #eef0f4; --muted: #a2a9b6; --line: #4a505c; --soft: #353a45;
+    --accent: #6f8ff0; --accent-ink: #0d1020; --hover: #2c3242;
+    --done: #6fd08f; --done-bg: #1d3325; --mid: #f0c060; --mid-bg: #3a2f17; --new-bg: #2a2e36; color-scheme: dark; } }
+  :root[data-theme="dark"] {
+    --bg: #15171c; --surface: #22252c; --ink: #eef0f4; --muted: #a2a9b6; --line: #4a505c; --soft: #353a45;
+    --accent: #6f8ff0; --accent-ink: #0d1020; --hover: #2c3242;
+    --done: #6fd08f; --done-bg: #1d3325; --mid: #f0c060; --mid-bg: #3a2f17; --new-bg: #2a2e36; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font);
+         padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  main { max-width: 1100px; margin: 0 auto; padding-block: 20px 40px; display: grid; gap: 14px; }
+  header { display: grid; gap: 2px; }
+  h1 { font-size: 28px; font-weight: 900; margin: 0; text-wrap: balance; }
+  h2 { font-size: 19px; font-weight: 900; margin: 6px 0 0; }
+  .sub { margin: 0; color: var(--muted); font-size: 16px; }
+  #steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
+  #steps button { display: grid; gap: 1px; text-align: left; padding: 8px 10px; }
+  #steps b { font-size: 15px; }
+  #steps small { font-size: 12px; color: var(--muted); font-weight: 700; }
+  #steps button.on { border-color: var(--accent); box-shadow: inset 0 0 0 2px var(--accent); }
+  #steps button.done small { color: var(--done); }
+  #stage { background: #fff; border: 3px solid #14161a; border-radius: 18px; overflow: hidden; }
+  .row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .row > span.label { width: 80px; font-weight: 800; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; }
+  button { font: inherit; font-weight: 700; font-size: 15px; padding: 7px 12px; color: var(--ink);
+           border: 2px solid var(--line); border-radius: 10px; background: var(--surface); cursor: pointer; }
+  button:hover { background: var(--hover); }
+  button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  #status { font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .check { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 15px; margin-right: 12px; }
+  .check input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); }
+  .check input[type="range"] { accent-color: var(--accent); width: 110px; }
+  select { font: inherit; font-size: 15px; font-weight: 600; color: var(--ink); background: var(--surface);
+           border: 2px solid var(--line); border-radius: 10px; padding: 5px 8px; max-width: 220px; }
+  .note { color: var(--muted); font-size: 14px; }
+  #progress { background: var(--surface); border: 2px solid var(--soft); border-radius: 14px; padding: 14px 16px; display: grid; gap: 10px; }
+  #module-line { margin: 0; font-weight: 700; }
+  .table-wrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: 15px; }
+  th, td { text-align: left; padding: 7px 8px; border-top: 1px solid var(--soft); vertical-align: top; }
+  th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); border-top: 0; }
+  td.fi { font-style: italic; }
+  .chip { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 13px; font-weight: 800; white-space: nowrap; }
+  .chip.new { background: var(--new-bg); color: var(--muted); }
+  .chip.recognized, .chip.progress { background: var(--mid-bg); color: var(--mid); }
+  .chip.understands, .chip.produces { background: var(--done-bg); color: var(--done); }
+  #confirm-reset[hidden] { display: none; }
+  @media (max-width: 640px) {
+    #steps { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .row > span.label { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Kielipukki: <span id="module-title"></span></h1>
+    <p class="sub" id="module-sub"></p>
+  </header>
+
+  <div id="steps"></div>
+  <div id="stage"></div>
+
+  <div class="row">
+    <span class="label">Lesson</span>
+    <button id="repeat" title="Kielipukki says the sentence again. Asking twice also points at the answer.">Repeat</button>
+    <button id="next" hidden>Next scene</button>
+    <button id="mic" class="primary" hidden>Speak</button>
+    <button id="skip" hidden>Skip</button>
+    <button id="stop">Stop</button>
+    <span id="status"></span>
+  </div>
+  <p class="note" id="hint"></p>
+
+  <div class="row">
+    <span class="label">Settings</span>
+    <label class="check"><input type="checkbox" id="bubbles" checked> Word bubbles</label>
+    <label class="check"><input type="checkbox" id="speech" checked> Speech</label>
+    <label class="check"><input type="checkbox" id="effects" checked> Sound effects</label>
+    <label class="check" for="voice">Voice <select id="voice"></select></label>
+    <label class="check" for="rate">Speed <input type="range" id="rate" min="0.6" max="1.2" step="0.05" value="0.9"></label>
+  </div>
+  <p class="note" id="voice-note"></p>
+
+  <section id="progress" aria-labelledby="progress-h">
+    <h2 id="progress-h">Progress</h2>
+    <p id="module-line"></p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Form</th><th>Example</th><th>Understands</th><th>Produces</th></tr></thead>
+        <tbody id="forms"></tbody>
+      </table>
+    </div>
+    <div class="row">
+      <button id="reset">Reset progress</button>
+      <span id="confirm-reset" hidden>Clear all progress in this browser? <button id="reset-yes">Clear</button> <button id="reset-no">Keep</button></span>
+    </div>
+  </section>
+</main>
+<script type="module">
+  import { createKielipukki } from '../src/kielipukki.js';
+  import { KielipukkiSound } from '../src/sound.js';
+  import { Lesson, STAGES } from '../src/lesson/engine.js';
+  import { Progress, DAYS_NEEDED } from '../src/lesson/progress.js';
+  import module4 from '../src/lesson/modules/m4-vertailu.js';
+
+  const $ = id => document.getElementById(id);
+  const inline = window.KIELIPUKKI_INLINE;
+  const words = inline ? Object.fromEntries(inline.words.map(w => [w.id, w]))
+    : Object.fromEntries((await (await fetch('../assets/icons/icons.json')).json()).map(w => [w.id, w]));
+  const iconHref = f => inline ? inline.files[f] : `../assets/icons/${f}`;
+
+  const sound = new KielipukkiSound();
+  const goat = await createKielipukki($('stage'), { sound, ...(inline ? { rigSvg: inline.rig } : {}) });
+  window.goat = goat;
+  const mod = module4;
+  const progress = new Progress({ initial: mod.initial });
+
+  $('module-title').textContent = `${mod.title}`;
+  $('module-sub').textContent = `Module ${mod.number}: ${mod.subtitle}`;
+
+  // --- settings (same as the demo page) ---
+  const prefs = (() => { try { return JSON.parse(localStorage.getItem('kielipukki-sound') || '{}'); } catch { return {}; } })();
+  const savePrefs = () => { try { localStorage.setItem('kielipukki-sound', JSON.stringify(prefs)); } catch {} };
+  const bubblesBox = $('bubbles'), speechBox = $('speech'), effectsBox = $('effects'), voiceSel = $('voice'), rateIn = $('rate');
+  if ('bubbles' in prefs) bubblesBox.checked = prefs.bubbles;
+  if ('speech' in prefs) speechBox.checked = prefs.speech;
+  if ('effects' in prefs) effectsBox.checked = prefs.effects;
+  if (prefs.rate) rateIn.value = prefs.rate;
+  const applySound = () => {
+    goat.setBubbles(bubblesBox.checked);
+    sound.speech = speechBox.checked;
+    sound.effects = effectsBox.checked;
+    sound.rate = Number(rateIn.value);
+    sound.voice = sound.voices().find(v => v.voiceURI === voiceSel.value) || null;
+    Object.assign(prefs, { bubbles: bubblesBox.checked, speech: sound.speech, effects: sound.effects, rate: sound.rate, voice: voiceSel.value });
+    savePrefs();
+  };
+  const listVoices = () => {
+    const voices = sound.voices();
+    voiceSel.replaceChildren(...voices.map(v => new Option(`${v.name}${v.localService ? '' : ' (online)'}`, v.voiceURI)));
+    if (prefs.voice && voices.some(v => v.voiceURI === prefs.voice)) voiceSel.value = prefs.voice;
+    voiceSel.parentElement.hidden = !voices.length;
+    $('voice-note').textContent = voices.length ? '' :
+      'No Finnish voice is installed on this device, so sentences are shown but not spoken. Chrome, Edge and Safari usually include one.';
+    applySound();
+  };
+  sound.onvoiceschanged = listVoices;
+  listVoices();
+  for (const el of [bubblesBox, speechBox, effectsBox, voiceSel, rateIn]) el.addEventListener('change', applySound);
+
+  // --- lesson ---
+  const HINTS = {
+    1: 'Watch and listen. Click things on the stage to hear about them, then go to the next scene.',
+    2: 'Click what Kielipukki asks for.',
+    3: 'Drag things to carry out what Kielipukki says. "Anna minulle" means drag it to him.',
+    4: 'Clicks and drags, mixed. Few mismatches here on two different days completes the module.',
+    5: 'Optional. Say what Kielipukki should take: the glowing thing. Uses the microphone in Chrome or Edge.',
+  };
+  let current = null;
+  const lesson = new Lesson({
+    goat, module: mod, progress, words, iconHref,
+    ui: {
+      state(s) {
+        current = s;
+        const watching = s.mode === 'watch' || s.mode === 'watch-wait';
+        $('next').hidden = s.mode !== 'watch-wait';
+        $('repeat').hidden = !(s.mode === 'task');
+        $('mic').hidden = $('skip').hidden = s.mode !== 'speech';
+        let text = '';
+        if (watching) text = `Scene ${s.index} of ${s.count}`;
+        else if (s.mode === 'task') text = `Task ${s.index} of ${s.count}` + (s.mismatches ? `, ${s.mismatches} mismatch${s.mismatches > 1 ? 'es' : ''}` : '');
+        else if (s.mode === 'speech') text = `Sentence ${s.index} of ${s.count}`;
+        else if (s.mode === 'done') {
+          text = `Stage ${s.stage} finished.`;
+          if (s.stage === 4) text += s.counted ? ' This counts towards completing the module.' : ` ${s.mismatches} mismatches: too many to count today. Try again.`;
+        }
+        $('status').textContent = text;
+        $('hint').textContent = s.stage && s.mode !== 'idle' && s.mode !== 'done' ? HINTS[s.stage] : 'Choose a stage to start.';
+        renderSteps();
+      },
+      progressChanged: renderProgress,
+    },
+  });
+  window.lesson = lesson;
+
+  function renderSteps() {
+    const box = $('steps');
+    box.replaceChildren(...STAGES.map(st => {
+      const b = document.createElement('button');
+      const done = progress.stageDone(mod.id, st.n);
+      b.className = (lesson.stage === st.n ? 'on ' : '') + (done ? 'done' : '');
+      b.innerHTML = `<b>${st.n}. ${st.name}</b><small>${done ? 'Done' : st.n === 5 ? 'Optional' : 'Not done yet'}</small>`;
+      b.onclick = () => lesson.runStage(st.n);
+      return b;
+    }));
+  }
+
+  const STATUS = {
+    new: 'Not yet', recognized: 'Meaning recognized', progress: null, understands: 'Understands', produces: 'Produces',
+  };
+  function renderProgress() {
+    const days = progress.moduleDays(mod.id);
+    $('module-line').textContent = progress.moduleComplete(mod.id)
+      ? `Module complete: stage 4 finished with few mismatches on ${days} days.`
+      : `Module complete when stage 4 is finished with few mismatches on ${DAYS_NEEDED} separate days. So far: ${days} of ${DAYS_NEEDED}.`;
+    $('forms').replaceChildren(...Object.entries(mod.forms).map(([id, f]) => {
+      const tr = document.createElement('tr');
+      const st = progress.status(id);
+      const under = st === 'produces' ? (progress.understands(id) ? 'understands' : (progress.correctDays(id) ? 'progress' : progress.data.forms[id]?.start || 'new')) : st;
+      const label = s => s === 'progress' ? `${progress.correctDays(id)} of ${DAYS_NEEDED} days` : STATUS[s];
+      tr.innerHTML = `<td></td><td class="fi"></td><td><span class="chip ${under}"></span></td><td><span class="chip ${progress.produces(id) ? 'produces' : 'new'}"></span></td>`;
+      tr.cells[0].textContent = f.label;
+      tr.cells[1].textContent = f.example;
+      tr.cells[2].firstChild.textContent = label(under);
+      tr.cells[3].firstChild.textContent = progress.produces(id) ? 'Produces' : 'Not yet';
+      return tr;
+    }));
+    renderSteps();
+  }
+
+  $('repeat').onclick = () => lesson.repeat();
+  $('next').onclick = () => lesson.next();
+  $('stop').onclick = () => lesson.stop();
+  $('skip').onclick = () => lesson.heard(null);
+  $('reset').onclick = () => { $('confirm-reset').hidden = false; };
+  $('reset-no').onclick = () => { $('confirm-reset').hidden = true; };
+  $('reset-yes').onclick = () => { progress.reset(); $('confirm-reset').hidden = true; renderProgress(); };
+
+  // Stage 5: listen with the browser's speech recognition.
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  $('mic').onclick = () => {
+    if (!SR) { $('hint').textContent = 'Speech recognition is not available in this browser. Use Skip to go on.'; return; }
+    const rec = new SR();
+    rec.lang = 'fi-FI';
+    rec.maxAlternatives = 5;
+    rec.interimResults = false;
+    $('mic').textContent = 'Listening…';
+    rec.onresult = e => lesson.heard([...e.results[0]].map(r => r.transcript));
+    rec.onerror = e => { $('hint').textContent = `The microphone did not work (${e.error}). Use Skip to go on.`; };
+    rec.onend = () => { $('mic').textContent = 'Speak'; };
+    try { rec.start(); } catch (e) { $('hint').textContent = 'The microphone could not start. Use Skip to go on.'; }
+  };
+
+  renderProgress();
+  lesson._state({ mode: 'idle' });
+</script>
+</body>
+</html>
