@@ -334,7 +334,8 @@ export class Lesson {
   /** The learner asks to hear the sentence again. A second ask also points at the answer. */
   /**
    * Say the last sentence again, a little slower. During a click or drag task
-   * that is the instruction, and a second press also points at the answer.
+   * that is the instruction. He never shows the answer: the learner finds it
+   * by trying.
    */
   async repeat() {
     if (this._busy || this._speaking || this._narrating) return;
@@ -344,13 +345,6 @@ export class Lesson {
     const run = this._run;
     const sound = this.goat.sound, rate = sound?.rate;
     try {
-      if (t) {
-        t.repeats = (t.repeats || 0) + 1;
-        if (t.repeats >= 2 && t.hint) {
-          t.firstTry = false;   // a pointed-out answer does not count as understood
-          this.goat.pointAt(t.hint, { hold: 1600 });
-        }
-      }
       if (sound) sound.rate = Math.max(0.6, rate - 0.15);
       await this._say(run, lines, { hold: 1500 });
     } catch (e) {

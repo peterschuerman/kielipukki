@@ -50,7 +50,7 @@ Each module has five stages:
 4. **Mixed**: tasks from stages 2 and 3 in random order (10 tasks).
 5. **Write** (optional): a thing glows and the learner types what he should take, for example "Anna minulle isoin laatikko", and presses Enter. He takes whatever was named and says what it is, so naming the wrong thing shows its result. The ä and ö buttons insert those letters; "a" for "ä" and "o" for "ö" are also accepted, and his reply uses the correct spelling.
 
-"Repeat" makes him say his last sentence again, a little slower, in every stage. In click and drag tasks that is the instruction, and pressing it a second time in the same task also makes him point at the answer; that task then does not count towards Understands.
+"Repeat" makes him say his last sentence again, a little slower, in every stage; in click and drag tasks that is the instruction. He never shows the answer: the learner finds it by trying, and each try is described.
 
 ### Progress
 
