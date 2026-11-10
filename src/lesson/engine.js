@@ -403,6 +403,7 @@ export class Lesson {
     if (t.kind === 'click') {
       g.onPropClick = prop => { if (t.choices.includes(prop.id)) this._resolve({ type: 'click', id: prop.id }); };
     } else if (t.kind === 'drop') {
+      for (const id of t.movable) if (g.props[id]) g.props[id].draggable = true;
       g.enableDragging(true);
       g.canDrag = prop => t.movable.includes(prop.id);
       g.onDrop = (prop, point, from) => {
@@ -412,6 +413,7 @@ export class Lesson {
         return true;
       };
     } else if (t.kind === 'give') {
+      for (const id of t.choices) if (g.props[id]) g.props[id].draggable = true;
       g.enableDragging(true);
       g.canDrag = prop => t.choices.includes(prop.id);
       g.canReceive = prop => t.choices.includes(prop.id);
