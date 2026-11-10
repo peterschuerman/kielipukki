@@ -12,7 +12,7 @@
 // after a mismatch.
 
 import { EASE } from '../kielipukki.js';
-import { box, person, iconImage, priceTag, stars, readerFace } from './art.js';
+import { box, person, house, iconImage, priceTag, stars, readerFace } from './art.js';
 
 export const STAGES = [
   { n: 1, name: 'Watch' },
@@ -46,6 +46,10 @@ export class SceneContext {
 
   /** Remove everything from the stage except the tutor. */
   clear() {
+    for (const stop of this._loops || []) stop();
+    this._loops = [];
+    this._deco?.remove();
+    this._deco = null;
     for (const h of Object.values(this.goat.hands)) if (h.holding) this.goat.removeProp(h.holding.id);
     for (const id of Object.keys(this.goat.props)) this.goat.removeProp(id);
     this.items = {};
@@ -54,7 +58,38 @@ export class SceneContext {
     this.goat.lookAt(null);
   }
 
-  /** Draw a background: 'table', 'shop' or 'room'. */
+  /**
+   * Add drawings that are not things to click or drag (gaze lines, leashes,
+   * speech bubbles, arrows). They sit above the props and let clicks through.
+   */
+  deco(markup) {
+    if (!this._deco) {
+      this._deco = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      this._deco.setAttribute('pointer-events', 'none');
+      this.goat.layers.props.after(this._deco);
+    }
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.innerHTML = markup;
+    this._deco.appendChild(g);
+    return g;
+  }
+
+  /** Run fn(seconds) every frame until the stage is cleared. */
+  loop(fn) {
+    let on = true;
+    const t0 = performance.now();
+    const step = now => { if (!on) return; fn((now - t0) / 1000); requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+    (this._loops ||= []).push(() => { on = false; });
+  }
+
+  /** Stage position of a point given in an item's own units (e.g. a person's face). */
+  at(id, point) {
+    const p = this.goat.props[id];
+    return { x: p.x + point.x * p.scale, y: p.y + point.y * p.scale };
+  }
+
+  /** Draw a background: 'table', 'shop', 'room' or 'street'. */
   background(kind) {
     const table = `
       <rect x="560" y="596" width="620" height="22" rx="11" fill="#c9a77c" stroke="#111" stroke-width="7"/>
@@ -64,9 +99,11 @@ export class SceneContext {
       <text x="700" y="75" text-anchor="middle" font-family="Nunito, sans-serif" font-size="36" font-weight="900" fill="#111">KAUPPA</text>`;
     const room = `<path d="M520 668 H1190" stroke="#111" stroke-width="7" stroke-linecap="round"/>
       <rect x="520" y="672" width="670" height="28" fill="#e9e1d3"/>`;
+    const street = `<rect x="520" y="668" width="670" height="32" fill="#d7d7d7"/>
+      <path d="M520 668 H1190" stroke="#111" stroke-width="7" stroke-linecap="round"/>`;
     this.goat.layers.background.innerHTML = `<rect x="0" y="0" width="1200" height="700" fill="#fff"/>` +
-      (kind === 'room' ? room : table) + (kind === 'shop' ? shop : '');
-    this.floor = kind === 'room' ? 668 : 592;
+      (kind === 'room' ? room : kind === 'street' ? street : table) + (kind === 'shop' ? shop : '');
+    this.floor = kind === 'room' || kind === 'street' ? 668 : 592;
   }
 
   _define(key, art, label) {
@@ -103,21 +140,43 @@ export class SceneContext {
     const ic = iconImage(this.iconHref(w.files[0]), w.boxes?.[0], size, wilt ? {
       style: `filter: grayscale(${wilt * 0.85}) brightness(${1 - wilt * 0.08})`,
       transform: `rotate(${wilt * 24} 0 ${size / 2})`,
-    } : {});
+    } : extras.flip ? { transform: 'scale(-1 1)' } : {});
     let markup = ic.markup, half = ic.half, top = -ic.half;
     if (extras.price != null) markup += priceTag(`${extras.price} €`, ic.halfW * 0.4, top + 8);
     if (extras.stars != null) { markup += stars(extras.stars, half + 24); half += 42; }
     if (extras.reader != null) markup += readerFace(extras.reader, 0, top - 38);
     const art = { markup, half, halfW: ic.halfW };
-    const key = `${wordId}-${size}-${extras.price ?? ''}-${extras.stars ?? ''}-${extras.reader ?? ''}-${wilt}`;
+    const key = `${wordId}-${size}-${extras.price ?? ''}-${extras.stars ?? ''}-${extras.reader ?? ''}-${wilt}-${extras.flip ? 'f' : ''}`;
     return this._put(this._define(key, art, w.fi), art, wordId, opts);
   }
 
   /** A person: spec for art.person ({ kind, height, shirt, hair, ... }). */
   addPerson(spec, opts = {}) {
     const art = person(spec);
-    const key = `person-${spec.kind}-${spec.height}-${spec.shirt}-${spec.hair}`;
+    const key = `person-${spec.kind}-${spec.height}-${spec.shirt}-${spec.hair}-${spec.asleep ? 's' : ''}`;
     return this._put(this._define(key, art, spec.kind), art, 'person', { ...opts, data: { ...spec, ...(opts.data || {}) } });
+  }
+
+  /** Markup for a vocabulary icon, for use in deco(). Returns { markup, half, halfW }. */
+  iconMarkup(wordId, size = 70, opts = {}) {
+    const w = this.words[wordId];
+    return iconImage(this.iconHref(w.files[0]), w.boxes?.[0], size, opts);
+  }
+
+  /** A house: spec for art.house ({ w, h, door }). */
+  addHouse(spec = {}, opts = {}) {
+    const art = house(spec);
+    const key = `house-${spec.w}-${spec.h}-${spec.door}`;
+    return this._put(this._define(key, art, 'talo'), art, 'house', opts);
+  }
+
+  /** Move an item to stand in front of another item, at its door if it has one. */
+  async placeAt(id, targetId, ms = 320) {
+    const tp = this.goat.props[targetId], art = this.items[targetId].art, p = this.goat.props[id];
+    const door = art.door || { x: 0, y: art.half };
+    const to = { x: tp.x + door.x * tp.scale, y: tp.y + door.y * tp.scale - this.items[id].half * p.scale };
+    await this.goat.tween(p, to, ms, EASE.out);
+    this.goat.sound?.play('drop', 0.5);
   }
 
   /** The item whose outline contains a stage point (among ids, if given). */
@@ -339,7 +398,13 @@ export class Lesson {
     // Spread the tasks over the task types, in random order.
     const order = [];
     while (order.length < count) order.push(...shuffle(pool));
-    const list = order.slice(0, count);
+    let list = order.slice(0, count);
+    // Stage 4 also mixes in tasks from earlier modules (about a third).
+    const earlier = stage === 4 ? (this.module.mixWith || []).flatMap(m => m.tasks.filter(t => t.stages.includes(4))) : [];
+    if (earlier.length) {
+      const n = Math.round(count / 3);
+      list = shuffle([...list.slice(0, count - n), ...shuffle(earlier).slice(0, n)]);
+    }
     let mismatches = 0;
     for (let i = 0; i < list.length; i++) {
       this._state({ mode: 'task', index: i + 1, count, mismatches });
@@ -432,6 +497,7 @@ export class Lesson {
       const how = t.place(action);
       if (how === 'in') await ctx.placeIn(action.id, action.target);
       else if (how === 'person') await ctx.giveTo(action.id, action.target);
+      else if (how === 'at') await ctx.placeAt(action.id, action.target);
       else await ctx.placeOn(action.id, action.target);
       goat.lookAt(action.target);
     } else if (action.type === 'give') {
@@ -488,6 +554,19 @@ export class Lesson {
         }
         // Act out what was said, even when it is not the glowing thing.
         this._unglow();
+        if (match.point) {
+          // People and houses: he points at the one that was named.
+          this.goat.pointAt(match.id, { hold: 1500 });
+          await this._say(run, match.reply, { hold: 900 });
+          if (match.id === t.target) {
+            this.progress.recordProduced(t.forms);
+            said++;
+            await this.goat.setEmotion('veryHappy');
+            break;
+          }
+          this._glow(t.target);
+          continue;
+        }
         await this.goat.pickUp(match.id);
         await this.goat.holdUp();
         await this._say(run, match.reply, { hold: 900 });

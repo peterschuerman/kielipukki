@@ -72,6 +72,20 @@ The first module built. Its scenes:
 
 Things that only need to be looked at use the Mulberry icons; the boxes and the family are drawn in Kielipukki's style. Positions are shuffled every task, so where something stands never gives the answer away.
 
+### Module 6: Relatiivipronominit (relative pronouns)
+
+Five scenes. In each one the people (or houses) look the same, and only who does what to whom tells them apart:
+
+- **Watching**: three men with dogs. "Napauta miestä, joka katsoo koiraa / jota koira katsoo / jonka koira nukkuu." Dotted lines show who looks at whom; a leash shows whose dog it is.
+- **The hat**: "miestä, jolla on hattu / jolle nainen antaa hatun / jolta nainen ottaa hatun." The hat moves between hands, under an arrow from giver to taker.
+- **Talking**: "miestä, joka puhuu naiselle / jolle nainen puhuu / jota nainen kuuntelee / joka lukee." Speech bubbles with arrows show who speaks to whom.
+- **Three houses**: "taloa, jossa mies asuu / josta mies tulee / johon mies menee." Someone looks out of a window; others walk out of or into a door.
+- **Children**: "lapsia, jotka leikkivät / lasta, joka leikkii / lapsia, jotka nukkuvat."
+
+Watch introduces each one with the known form first and the new form second ("Koira katsoo miestä. Tämä on mies, jota koira katsoo."). Carry out asks for a book to be given to the right man ("Anna kirja miehelle, jolle nainen puhuu.") or a dog to be taken into the right house ("Vie koira taloon, johon mies menee."). Stage 4 mixes in Module 4's tasks (about a third). In Write, the learner writes which one is glowing, for example "mies, jolla on hattu".
+
+The page has a module picker; progress for all modules is kept together.
+
 ### Adding a module
 
 A module is a file in `src/lesson/modules/` that exports `{ id, title, forms, initial, scenes, tasks, speech }`:
@@ -79,6 +93,7 @@ A module is a file in `src/lesson/modules/` that exports `{ id, title, forms, in
 - `forms`: the forms it teaches, each with a label and a Finnish example (shown in the progress table).
 - `scenes`: for stage 1, each with `setup(ctx)`, `watch(ctx, layout, say)` and `narrate(ctx, layout, id, say)`.
 - `tasks`: each with `stages` (which of 2, 3, 4 it appears in) and `make(ctx)`, which sets up the stage and returns a task: `kind` ('click', 'drop' or 'give'), `say` (the instruction), `accept(action)`, `describe(action, ok)` (what he says about what the learner did), `forms`, `hint`, and for drops `movable`, `targets` and `place`.
+- `mixWith`: earlier modules whose tasks stage 4 mixes in (optional). `writeHint`: the stage 5 instruction shown on the page (optional).
 - `speech`: stage 5 tasks, each returning `target`, `forms` and `match(texts)` (the written sentence, as a one-item array).
 
 `ctx` (a `SceneContext` in `src/lesson/engine.js`) has helpers to draw backgrounds, add boxes, icons with price tags, star ratings or reader faces, and people, and to find what is under a dropped thing.

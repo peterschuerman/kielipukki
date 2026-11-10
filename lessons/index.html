@@ -31,6 +31,7 @@
   h1 { font-size: 28px; font-weight: 900; margin: 0; text-wrap: balance; }
   h2 { font-size: 19px; font-weight: 900; margin: 6px 0 0; }
   .sub { margin: 0; color: var(--muted); font-size: 16px; }
+  #modules button.on { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
   #steps { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 6px; }
   #steps button { display: grid; gap: 1px; text-align: left; padding: 8px 10px; }
   #steps b { font-size: 15px; }
@@ -80,6 +81,7 @@
     <h1>Kielipukki: <span id="module-title"></span></h1>
     <p class="sub" id="module-sub"></p>
   </header>
+  <nav class="row" id="modules" aria-label="Modules"></nav>
 
   <div id="steps"></div>
   <div id="stage"></div>
@@ -132,6 +134,7 @@
   import { Lesson, STAGES } from '../src/lesson/engine.js';
   import { Progress, DAYS_NEEDED } from '../src/lesson/progress.js';
   import module4 from '../src/lesson/modules/m4-vertailu.js';
+  import module6 from '../src/lesson/modules/m6-relatiivi.js';
 
   const $ = id => document.getElementById(id);
   const inline = window.KIELIPUKKI_INLINE;
@@ -142,11 +145,28 @@
   const sound = new KielipukkiSound();
   const goat = await createKielipukki($('stage'), { sound, ...(inline ? { rigSvg: inline.rig } : {}) });
   window.goat = goat;
-  const mod = module4;
-  const progress = new Progress({ initial: mod.initial });
+  const MODULES = [module4, module6];
+  const savedModule = (() => { try { return localStorage.getItem('kielipukki-module'); } catch { return null; } })();
+  let mod = MODULES.find(m => m.id === savedModule) || MODULES[0];
+  const progress = new Progress({ initial: Object.assign({}, ...MODULES.map(m => m.initial)) });
 
-  $('module-title').textContent = `${mod.title}`;
-  $('module-sub').textContent = `Module ${mod.number}: ${mod.subtitle}`;
+  function showModule() {
+    $('module-title').textContent = mod.title;
+    $('module-sub').textContent = `Module ${mod.number}: ${mod.subtitle}`;
+    $('modules').replaceChildren(...MODULES.map(m => {
+      const b = document.createElement('button');
+      b.textContent = `${m.number}. ${m.title}`;
+      b.className = m === mod ? 'on' : '';
+      b.setAttribute('aria-pressed', m === mod);
+      b.onclick = () => {
+        if (m === mod) return;
+        mod = m;
+        try { localStorage.setItem('kielipukki-module', m.id); } catch {}
+        makeLesson();
+      };
+      return b;
+    }));
+  }
 
   // --- settings (same as the demo page) ---
   const prefs = (() => { try { return JSON.parse(localStorage.getItem('kielipukki-sound') || '{}'); } catch { return {}; } })();
@@ -187,9 +207,8 @@
     5: 'Optional. Write what Kielipukki should take, the glowing thing, for example "Anna minulle isoin laatikko", and press Enter.',
   };
   let current = null;
-  const lesson = new Lesson({
-    goat, module: mod, progress, words, iconHref,
-    ui: {
+  let lesson = null;
+  const ui = {
       state(s) {
         current = s;
         const watching = s.mode === 'watch' || s.mode === 'watch-wait';
@@ -206,13 +225,20 @@
           if (s.stage === 4) text += s.counted ? ' This counts towards completing the module.' : ` ${s.mismatches} mismatches: too many to count today. Try again.`;
         }
         $('status').textContent = text;
-        $('hint').textContent = s.stage && s.mode !== 'idle' && s.mode !== 'done' ? HINTS[s.stage] : 'Choose a stage to start.';
+        $('hint').textContent = s.stage && s.mode !== 'idle' && s.mode !== 'done'
+          ? (s.stage === 5 && mod.writeHint) || HINTS[s.stage] : 'Choose a stage to start.';
         renderSteps();
       },
       progressChanged: renderProgress,
-    },
-  });
-  window.lesson = lesson;
+  };
+  function makeLesson() {
+    lesson?.stop();
+    lesson = new Lesson({ goat, module: mod, progress, words, iconHref, ui });
+    window.lesson = lesson;
+    showModule();
+    renderProgress();
+    lesson._state({ mode: 'idle' });
+  }
 
   function renderSteps() {
     const box = $('steps');
@@ -275,8 +301,7 @@
     };
   });
 
-  renderProgress();
-  lesson._state({ mode: 'idle' });
+  makeLesson();
 </script>
 </body>
 </html>

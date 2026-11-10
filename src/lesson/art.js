@@ -79,7 +79,7 @@ const SKIN = '#f3d9c2';
  * height, and anchor points for a hat (`head`, the top of the head) and a
  * held thing (`hand`, the viewer's right hand).
  */
-export function person({ kind, height: H, shirt = '#3e63dd', pants = '#3a3f4b', hair = '#5a3a1e' }) {
+export function person({ kind, height: H, shirt = '#3e63dd', pants = '#3a3f4b', hair = '#5a3a1e', asleep = false }) {
   const kid = kind === 'poika' || kind === 'tytto' || kind === 'vauva';
   const sw = 6;
   const headR = H * (kind === 'vauva' ? 0.2 : kid ? 0.15 : 0.12);
@@ -137,11 +137,44 @@ export function person({ kind, height: H, shirt = '#3e63dd', pants = '#3a3f4b', 
     <circle cx="${handX}" cy="${handY}" r="${H * 0.045 + 3}" fill="${SKIN}" stroke="${INK}" stroke-width="${sw * 0.8}"/>
     <circle cx="0" cy="${hy}" r="${headR}" fill="${SKIN}" stroke="${INK}" stroke-width="${sw}"/>
     ${hairFront}
-    <circle cx="${-headR * 0.36}" cy="${hy + headR * 0.05}" r="${eyeR}" fill="${INK}"/>
-    <circle cx="${headR * 0.36}" cy="${hy + headR * 0.05}" r="${eyeR}" fill="${INK}"/>
+    ${asleep
+      ? `<path d="M${-headR * 0.5} ${hy + headR * 0.05} q${headR * 0.14} ${headR * 0.12} ${headR * 0.28} 0 M${headR * 0.22} ${hy + headR * 0.05} q${headR * 0.14} ${headR * 0.12} ${headR * 0.28} 0"
+           fill="none" stroke="${INK}" stroke-width="${sw * 0.6}" stroke-linecap="round"/>
+         <text x="${headR * 0.9}" y="${hy - headR * 0.9}" font-family="Nunito, sans-serif" font-size="${Math.max(16, headR * 0.7)}" font-weight="900" fill="${INK}">z</text>
+         <text x="${headR * 1.35}" y="${hy - headR * 1.45}" font-family="Nunito, sans-serif" font-size="${Math.max(12, headR * 0.5)}" font-weight="900" fill="${INK}">z</text>`
+      : `<circle cx="${-headR * 0.36}" cy="${hy + headR * 0.05}" r="${eyeR}" fill="${INK}"/>
+         <circle cx="${headR * 0.36}" cy="${hy + headR * 0.05}" r="${eyeR}" fill="${INK}"/>`}
     ${extra}
     <path d="M${-headR * 0.3} ${hy + headR * 0.5} Q 0 ${hy + headR * 0.72} ${headR * 0.3} ${hy + headR * 0.5}" fill="none" stroke="${INK}" stroke-width="${sw * 0.7}" stroke-linecap="round"/>`;
-  return { markup, half: H / 2, halfW: bw / 2 + 18, head: { x: 0, y: top - 2 }, hand: { x: handX, y: handY } };
+  return {
+    markup, half: H / 2, halfW: bw / 2 + 18,
+    head: { x: 0, y: top - 2 },                      // top of the head (for a hat)
+    face: { x: 0, y: hy, r: headR },                 // centre of the face
+    hand: { x: handX, y: handY },                    // viewer's right hand
+    leftHand: { x: -handX, y: handY },
+  };
+}
+
+/**
+ * A small house with a door and a window. door: 'open' | 'closed'.
+ * Returns markup centred on 0,0 with the door's bottom centre (`door`) and
+ * the window's centre (`window`).
+ */
+export function house({ w = 150, h = 150, door = 'closed', roof = '#d9534f', wall = '#f1e3c6' } = {}) {
+  const sw = 7, top = -h / 2, roofH = h * 0.38, bodyTop = top + roofH;
+  const dw = w * 0.26, dh = (h - roofH) * 0.6, dx = w * 0.14, dy = h / 2 - dh;
+  const win = { x: -w * 0.22, y: bodyTop + (h - roofH) * 0.36 }, ws = w * 0.24;
+  const doorMarkup = door === 'open'
+    ? `<rect x="${dx - dw / 2}" y="${dy}" width="${dw}" height="${dh}" fill="#3b2a1a" stroke="${INK}" stroke-width="${sw}"/>
+       <path d="M${dx - dw / 2} ${dy} L${dx - dw / 2 - dw * 0.55} ${dy + 8} L${dx - dw / 2 - dw * 0.55} ${h / 2 - 4} L${dx - dw / 2} ${h / 2} Z" fill="#a0632e" stroke="${INK}" stroke-width="${sw * 0.8}" stroke-linejoin="round"/>`
+    : `<rect x="${dx - dw / 2}" y="${dy}" width="${dw}" height="${dh}" rx="4" fill="#a0632e" stroke="${INK}" stroke-width="${sw}"/>
+       <circle cx="${dx + dw * 0.25}" cy="${dy + dh * 0.55}" r="3.5" fill="${INK}"/>`;
+  const markup = `
+    <path d="M${-w / 2 - 12} ${bodyTop + 4} L0 ${top} L${w / 2 + 12} ${bodyTop + 4} Z" fill="${roof}" stroke="${INK}" stroke-width="${sw}" stroke-linejoin="round"/>
+    <rect x="${-w / 2}" y="${bodyTop}" width="${w}" height="${h - roofH}" fill="${wall}" stroke="${INK}" stroke-width="${sw}"/>
+    <rect x="${win.x - ws / 2}" y="${win.y - ws / 2}" width="${ws}" height="${ws}" fill="#cfe8f7" stroke="${INK}" stroke-width="${sw * 0.8}"/>
+    ${doorMarkup}`;
+  return { markup, half: h / 2, halfW: w / 2 + 12, door: { x: dx, y: h / 2 }, window: { x: win.x, y: win.y, size: ws } };
 }
 
 /**
