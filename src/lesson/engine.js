@@ -294,6 +294,10 @@ export class Lesson {
   /** Stop whatever stage is running. */
   stop() {
     this._run++;
+    this._task = null;
+    this._speechTask = null;
+    this._lastLines = null;
+    this._busy = false;
     this._pending?.reject(new Stopped());
     this._pending = null;
     this._hooksOff();
@@ -315,28 +319,45 @@ export class Lesson {
 
   async _say(run, text, opts) {
     this._check(run);
-    for (const line of [].concat(text)) {
-      await this.goat.say(line, { hold: 500, ...opts });
-      this._check(run);
+    this._lastLines = [].concat(text);   // what Repeat plays again
+    this._speaking = (this._speaking || 0) + 1;
+    try {
+      for (const line of this._lastLines) {
+        await this.goat.say(line, { hold: 500, ...opts });
+        this._check(run);
+      }
+    } finally {
+      this._speaking--;
     }
   }
 
   /** The learner asks to hear the sentence again. A second ask also points at the answer. */
+  /**
+   * Say the last sentence again, a little slower. During a click or drag task
+   * that is the instruction, and a second press also points at the answer.
+   */
   async repeat() {
+    if (this._busy || this._speaking || this._narrating) return;
     const t = this._task;
-    if (!t || this._busy) return;
-    t.repeats = (t.repeats || 0) + 1;
+    const lines = t ? [].concat(t.say) : this._lastLines;
+    if (!lines?.length) return;
     const run = this._run;
+    const sound = this.goat.sound, rate = sound?.rate;
     try {
-      if (t.repeats >= 2 && t.hint) {
-        t.firstTry = false;   // a pointed-out answer does not count as understood
-        this.goat.pointAt(t.hint, { hold: 1600 });
+      if (t) {
+        t.repeats = (t.repeats || 0) + 1;
+        if (t.repeats >= 2 && t.hint) {
+          t.firstTry = false;   // a pointed-out answer does not count as understood
+          this.goat.pointAt(t.hint, { hold: 1600 });
+        }
       }
-      const rate = this.goat.sound?.rate;
-      if (this.goat.sound) this.goat.sound.rate = Math.max(0.6, rate - 0.15);
-      await this._say(run, t.say, { hold: 1500 });
-      if (this.goat.sound) this.goat.sound.rate = rate;
-    } catch (e) { if (!(e instanceof Stopped)) throw e; }
+      if (sound) sound.rate = Math.max(0.6, rate - 0.15);
+      await this._say(run, lines, { hold: 1500 });
+    } catch (e) {
+      if (!(e instanceof Stopped)) throw e;
+    } finally {
+      if (sound) sound.rate = rate;
+    }
   }
 
   /** Continue after the watch stage's narration (the learner's "next"). */
@@ -350,6 +371,7 @@ export class Lesson {
     this.stop();
     const run = ++this._run;
     this.stage = n;
+    this._lastLines = null;
     try {
       if (n === 1) await this._watch(run);
       else if (n === 5) await this._speech(run);
