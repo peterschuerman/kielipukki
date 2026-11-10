@@ -45,6 +45,10 @@
   button:hover { background: var(--hover); }
   button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
   button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  #write .label { width: 80px; font-weight: 800; color: var(--muted); font-size: 13px; text-transform: uppercase; letter-spacing: 0.06em; }
+  #answer { font: inherit; font-size: 18px; font-weight: 700; color: var(--ink); background: var(--surface);
+            border: 2px solid var(--line); border-radius: 10px; padding: 7px 10px; flex: 1 1 260px; min-width: 0; }
+  #write .letter { min-width: 40px; }
   #status { font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; }
   .check { display: inline-flex; align-items: center; gap: 6px; font-weight: 700; font-size: 15px; margin-right: 12px; }
   .check input[type="checkbox"] { width: 18px; height: 18px; accent-color: var(--accent); }
@@ -84,11 +88,17 @@
     <span class="label">Lesson</span>
     <button id="repeat" title="Kielipukki says the sentence again. Asking twice also points at the answer.">Repeat</button>
     <button id="next" hidden>Next scene</button>
-    <button id="mic" class="primary" hidden>Speak</button>
     <button id="skip" hidden>Skip</button>
     <button id="stop">Stop</button>
     <span id="status"></span>
   </div>
+  <form id="write" class="row" hidden autocomplete="off">
+    <label class="label" for="answer">Write</label>
+    <input id="answer" type="text" lang="fi" spellcheck="false" autocapitalize="off" placeholder="Anna minulle …">
+    <button type="button" class="letter" data-letter="ä" aria-label="Insert ä">ä</button>
+    <button type="button" class="letter" data-letter="ö" aria-label="Insert ö">ö</button>
+    <button type="submit" class="primary">Send</button>
+  </form>
   <p class="note" id="hint"></p>
 
   <div class="row">
@@ -174,7 +184,7 @@
     2: 'Click what Kielipukki asks for.',
     3: 'Drag things to carry out what Kielipukki says. "Anna minulle" means drag it to him.',
     4: 'Clicks and drags, mixed. Few mismatches here on two different days completes the module.',
-    5: 'Optional. Press Speak and say what Kielipukki should take: the glowing thing, for example "Anna minulle isoin laatikko". The first time, you are asked to allow the microphone.',
+    5: 'Optional. Write what Kielipukki should take, the glowing thing, for example "Anna minulle isoin laatikko", and press Enter.',
   };
   let current = null;
   const lesson = new Lesson({
@@ -185,7 +195,8 @@
         const watching = s.mode === 'watch' || s.mode === 'watch-wait';
         $('next').hidden = s.mode !== 'watch-wait';
         $('repeat').hidden = !(s.mode === 'task');
-        $('mic').hidden = $('skip').hidden = s.mode !== 'speech';
+        $('write').hidden = $('skip').hidden = s.mode !== 'speech';
+        if (s.mode === 'speech') { $('answer').value = ''; $('answer').focus({ preventScroll: true }); }
         let text = '';
         if (watching) text = `Scene ${s.index} of ${s.count}`;
         else if (s.mode === 'task') text = `Task ${s.index} of ${s.count}` + (s.mismatches ? `, ${s.mismatches} mismatch${s.mismatches > 1 ? 'es' : ''}` : '');
@@ -246,71 +257,23 @@
   $('reset-no').onclick = () => { $('confirm-reset').hidden = true; };
   $('reset-yes').onclick = () => { progress.reset(); $('confirm-reset').hidden = true; renderProgress(); };
 
-  // Stage 5: listening.
-  // On claude.ai the page asks the platform for dictation (the viewer is asked
-  // once for the microphone). Opened from the repository, it uses the
-  // browser's own speech recognition (Chrome and Edge).
-  let dictation = null;
-  let dictationLang = 'fi';   // dropped if the service does not take Finnish by name
-  if (window.claude?.use) {
-    window.claude.use('dictation').then(d => {
-      if (!d) return;
-      dictation = d;
-      let heard = '';
-      d.onPartial(({ text }) => { if (text) $('hint').textContent = `Kuulen: ${heard}${text}`; });
-      d.onFinal(({ text }) => {
-        heard += text;
-        // One sentence is enough: stop and hand it to the lesson.
-        if (heard.trim()) d.stop();
-      });
-      d.onState(({ state, reason }) => {
-        $('mic').textContent = state === 'idle' ? 'Speak' : state === 'starting' ? 'Starting…' : 'Listening… (click to stop)';
-        if (state !== 'idle') return;
-        const text = heard.trim();
-        heard = '';
-        if (text) { $('hint').textContent = `Kuulin: ${text}`; lesson.heard([text]); }
-        else if (reason === 'not_granted') $('hint').textContent = 'The microphone is not allowed for this page. You can allow it in the page\'s Permissions menu, or use Skip.';
-        else if (reason === 'upstream_error' || reason === 'rate_limited') $('hint').textContent = 'Listening failed. Try again, or use Skip.';
-      });
-    }).catch(() => {});
-  }
-  function unavailable() {
-    if (dictationLang) {
-      // Finnish by name was refused: try once more with the viewer's default language.
-      dictationLang = null;
-      $('hint').textContent = 'Finnish dictation was refused by name. Press Speak again to try your default dictation language; it may still recognize Finnish. Otherwise use Skip.';
-    } else {
-      dictation = null;
-      $('hint').textContent = 'Dictation is not available here. Use Skip to go on, or run the lessons locally in Chrome (see the README).';
-    }
-  }
-  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  $('mic').onclick = () => {
-    if (dictation) {
-      if (dictation.active()) { dictation.stop(); return; }
-      // Must be called straight from the click, before anything is awaited.
-      dictation.start(dictationLang ? { language: dictationLang } : {}).catch(e => {
-        if (e?.code === 'not_granted') $('hint').textContent = 'The microphone is not allowed for this page. You can allow it in the page\'s Permissions menu, or use Skip.';
-        else if (e?.code === 'unavailable') unavailable();
-        else if (e?.code !== 'stopped') $('hint').textContent = 'Listening could not start. Try again, or use Skip.';
-      });
-      return;
-    }
-    if (!SR) { $('hint').textContent = 'Speech input is not available in this browser or app window. On claude.ai it works in Chrome, Edge and the Claude desktop app\'s main window. Use Skip to go on.'; return; }
-    const rec = new SR();
-    rec.lang = 'fi-FI';
-    rec.maxAlternatives = 5;
-    rec.interimResults = false;
-    $('mic').textContent = 'Listening…';
-    rec.onresult = e => {
-      const alts = [...e.results[0]].map(r => r.transcript);
-      $('hint').textContent = `Kuulin: ${alts[0]}`;
-      lesson.heard(alts);
-    };
-    rec.onerror = e => { $('hint').textContent = `The microphone did not work (${e.error}). Use Skip to go on.`; };
-    rec.onend = () => { $('mic').textContent = 'Speak'; };
-    try { rec.start(); } catch (e) { $('hint').textContent = 'The microphone could not start. Use Skip to go on.'; }
+  // Stage 5: the learner writes the sentence.
+  $('write').onsubmit = e => {
+    e.preventDefault();
+    const text = $('answer').value.trim();
+    if (!text) return;
+    $('hint').textContent = '';
+    lesson.heard([text]);
+    $('answer').value = '';
   };
+  document.querySelectorAll('#write .letter').forEach(b => {
+    b.onclick = () => {
+      const a = $('answer'), at = a.selectionStart ?? a.value.length, end = a.selectionEnd ?? at;
+      a.value = a.value.slice(0, at) + b.dataset.letter + a.value.slice(end);
+      a.focus();
+      a.setSelectionRange(at + 1, at + 1);
+    };
+  });
 
   renderProgress();
   lesson._state({ mode: 'idle' });

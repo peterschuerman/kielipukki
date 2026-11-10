@@ -2,7 +2,7 @@
 //
 // Understands: forms the learner has responded to correctly by action, on
 // the first try, in stage 2 or 3, on two separate days.
-// Produces: forms the learner has said in stage 5.
+// Produces: forms the learner has written in stage 5.
 // A module is complete when stage 4 was finished with few mismatches on two
 // separate days.
 
@@ -63,7 +63,7 @@ export class Progress {
     this._save();
   }
 
-  /** A sentence said correctly in stage 5. */
+  /** A sentence written correctly in stage 5. */
   recordProduced(forms) {
     const day = today();
     for (const f of forms) {

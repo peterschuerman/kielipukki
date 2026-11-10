@@ -5,7 +5,7 @@
 //   Stage 2 Choose    the tutor says a sentence; the learner clicks
 //   Stage 3 Carry out the tutor gives an instruction; the learner drags
 //   Stage 4 Mixed     tasks from stages 2 and 3 in random order
-//   Stage 5 Speech    optional: the learner says the sentence
+//   Stage 5 Write     optional: the learner writes the sentence
 //
 // Design rules this follows: the tutor speaks only Finnish, never says
 // "wrong", describes what the learner actually did, and repeats the request
@@ -19,7 +19,7 @@ export const STAGES = [
   { n: 2, name: 'Choose' },
   { n: 3, name: 'Carry out' },
   { n: 4, name: 'Mixed' },
-  { n: 5, name: 'Speech' },
+  { n: 5, name: 'Write' },
 ];
 const TASKS_PER_STAGE = { 2: 6, 3: 6, 4: 10, 5: 4 };
 

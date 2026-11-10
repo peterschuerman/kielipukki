@@ -346,7 +346,11 @@ function thingToPeople(name, thing) {
   };
 }
 
-// --- stage 5: say it ----------------------------------------------------------
+// --- stage 5: write it --------------------------------------------------------
+
+// "pienempää" and "pienempaa" match the same word, for keyboards without ä and ö.
+// His reply always uses the correct spelling.
+const plain = w => w.replace(/ä/g, 'a').replace(/ö/g, 'o').replace(/å/g, 'a');
 
 function rankedSpeech(name) {
   return {
@@ -362,9 +366,9 @@ function rankedSpeech(name) {
         forms: formsFor(adjOf(L, rel(L, target)), deg),
         match(alternatives) {
           for (const alt of alternatives) {
-            const words = alt.toLowerCase().replace(/[.,!?]/g, ' ').split(/\s+/);
+            const words = alt.toLowerCase().replace(/[.,!?]/g, ' ').split(/\s+/).map(plain);
             for (const [id, w] of Object.entries(word)) {
-              if (words.includes(w)) {
+              if (words.includes(plain(w))) {
                 return {
                   id, home: L.home[id],
                   reply: L.n === 2 ? `Tämä ${L.noun.n} on ${w}.` : `Tämä on ${w} ${L.noun.n}.`,

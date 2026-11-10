@@ -48,7 +48,7 @@ Each module has five stages:
 2. **Choose**: he says a sentence and the learner clicks the thing it means (6 tasks).
 3. **Carry out**: he gives an instruction and the learner drags (6 tasks). "Anna minulle ..." means drag it to him.
 4. **Mixed**: tasks from stages 2 and 3 in random order (10 tasks).
-5. **Speech** (optional): a thing glows and the learner presses Speak and says what he should take. On claude.ai the page uses the platform's dictation (declared as the `dictation` capability): the first press asks the viewer to allow the microphone, and it works in Chrome, Edge and the Claude desktop app's main window. Opened from the repository, the page uses the browser's own speech recognition (Chrome or Edge). The stage can be skipped.
+5. **Write** (optional): a thing glows and the learner types what he should take, for example "Anna minulle isoin laatikko", and presses Enter. He takes whatever was named and says what it is, so naming the wrong thing shows its result. The ä and ö buttons insert those letters; "a" for "ä" and "o" for "ö" are also accepted, and his reply uses the correct spelling.
 
 "Repeat" makes him say the sentence again, a little slower. Pressing it a second time in the same task also makes him point at the answer; that task then does not count towards Understands.
 
@@ -57,7 +57,7 @@ Each module has five stages:
 Progress is kept in the browser (`localStorage`), per the design doc's tracking rules:
 
 - **Understands**: a form answered correctly on the first try, in stage 2 or 3, on two separate days.
-- **Produces**: a form said correctly in stage 5.
+- **Produces**: a form written correctly in stage 5.
 - **Module complete**: stage 4 finished with at most one mismatch in five tasks (2 of 10), on two separate days.
 
 The diagnostic's starting values are set per module: in Module 4, the comparative forms start as "Meaning recognized".
@@ -79,7 +79,7 @@ A module is a file in `src/lesson/modules/` that exports `{ id, title, forms, in
 - `forms`: the forms it teaches, each with a label and a Finnish example (shown in the progress table).
 - `scenes`: for stage 1, each with `setup(ctx)`, `watch(ctx, layout, say)` and `narrate(ctx, layout, id, say)`.
 - `tasks`: each with `stages` (which of 2, 3, 4 it appears in) and `make(ctx)`, which sets up the stage and returns a task: `kind` ('click', 'drop' or 'give'), `say` (the instruction), `accept(action)`, `describe(action, ok)` (what he says about what the learner did), `forms`, `hint`, and for drops `movable`, `targets` and `place`.
-- `speech`: stage 5 tasks, each returning `target`, `forms` and `match(transcripts)`.
+- `speech`: stage 5 tasks, each returning `target`, `forms` and `match(texts)` (the written sentence, as a one-item array).
 
 `ctx` (a `SceneContext` in `src/lesson/engine.js`) has helpers to draw backgrounds, add boxes, icons with price tags, star ratings or reader faces, and people, and to find what is under a dropped thing.
 
