@@ -174,7 +174,7 @@
     2: 'Click what Kielipukki asks for.',
     3: 'Drag things to carry out what Kielipukki says. "Anna minulle" means drag it to him.',
     4: 'Clicks and drags, mixed. Few mismatches here on two different days completes the module.',
-    5: 'Optional. Say what Kielipukki should take: the glowing thing. Uses the microphone in Chrome or Edge.',
+    5: 'Optional. Press Speak and say what Kielipukki should take: the glowing thing, for example "Anna minulle isoin laatikko". The first time, you are asked to allow the microphone.',
   };
   let current = null;
   const lesson = new Lesson({
@@ -246,16 +246,57 @@
   $('reset-no').onclick = () => { $('confirm-reset').hidden = true; };
   $('reset-yes').onclick = () => { progress.reset(); $('confirm-reset').hidden = true; renderProgress(); };
 
-  // Stage 5: listen with the browser's speech recognition.
+  // Stage 5: listening.
+  // On claude.ai the page asks the platform for dictation (the viewer is asked
+  // once for the microphone). Opened from the repository, it uses the
+  // browser's own speech recognition (Chrome and Edge).
+  let dictation = null;
+  if (window.claude?.use) {
+    window.claude.use('dictation').then(d => {
+      if (!d) return;
+      dictation = d;
+      let heard = '';
+      d.onPartial(({ text }) => { if (text) $('hint').textContent = `Kuulen: ${heard}${text}`; });
+      d.onFinal(({ text }) => {
+        heard += text;
+        // One sentence is enough: stop and hand it to the lesson.
+        if (heard.trim()) d.stop();
+      });
+      d.onState(({ state, reason }) => {
+        $('mic').textContent = state === 'idle' ? 'Speak' : state === 'starting' ? 'Starting…' : 'Listening… (click to stop)';
+        if (state !== 'idle') return;
+        const text = heard.trim();
+        heard = '';
+        if (text) { $('hint').textContent = `Kuulin: ${text}`; lesson.heard([text]); }
+        else if (reason === 'not_granted') $('hint').textContent = 'The microphone is not allowed for this page. You can allow it in the page\'s Permissions menu, or use Skip.';
+        else if (reason === 'unavailable') $('hint').textContent = 'Dictation in Finnish is not available here. Use Skip to go on.';
+        else if (reason === 'upstream_error' || reason === 'rate_limited') $('hint').textContent = 'Listening failed. Try again, or use Skip.';
+      });
+    }).catch(() => {});
+  }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   $('mic').onclick = () => {
-    if (!SR) { $('hint').textContent = 'Speech recognition is not available in this browser. Use Skip to go on.'; return; }
+    if (dictation) {
+      if (dictation.active()) { dictation.stop(); return; }
+      // Must be called straight from the click, before anything is awaited.
+      dictation.start({ language: 'fi' }).catch(e => {
+        if (e?.code === 'not_granted') $('hint').textContent = 'The microphone is not allowed for this page. You can allow it in the page\'s Permissions menu, or use Skip.';
+        else if (e?.code === 'unavailable') $('hint').textContent = 'Dictation in Finnish is not available here. Use Skip to go on.';
+        else if (e?.code !== 'stopped') $('hint').textContent = 'Listening could not start. Try again, or use Skip.';
+      });
+      return;
+    }
+    if (!SR) { $('hint').textContent = 'Speech input is not available in this browser or app window. On claude.ai it works in Chrome, Edge and the Claude desktop app\'s main window. Use Skip to go on.'; return; }
     const rec = new SR();
     rec.lang = 'fi-FI';
     rec.maxAlternatives = 5;
     rec.interimResults = false;
     $('mic').textContent = 'Listening…';
-    rec.onresult = e => lesson.heard([...e.results[0]].map(r => r.transcript));
+    rec.onresult = e => {
+      const alts = [...e.results[0]].map(r => r.transcript);
+      $('hint').textContent = `Kuulin: ${alts[0]}`;
+      lesson.heard(alts);
+    };
     rec.onerror = e => { $('hint').textContent = `The microphone did not work (${e.error}). Use Skip to go on.`; };
     rec.onend = () => { $('mic').textContent = 'Speak'; };
     try { rec.start(); } catch (e) { $('hint').textContent = 'The microphone could not start. Use Skip to go on.'; }

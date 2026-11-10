@@ -48,7 +48,7 @@ Each module has five stages:
 2. **Choose**: he says a sentence and the learner clicks the thing it means (6 tasks).
 3. **Carry out**: he gives an instruction and the learner drags (6 tasks). "Anna minulle ..." means drag it to him.
 4. **Mixed**: tasks from stages 2 and 3 in random order (10 tasks).
-5. **Speech** (optional): a thing glows and the learner says what he should take. This uses the browser's speech recognition (Chrome or Edge) and the microphone, and can be skipped.
+5. **Speech** (optional): a thing glows and the learner presses Speak and says what he should take. On claude.ai the page uses the platform's dictation (declared as the `dictation` capability): the first press asks the viewer to allow the microphone, and it works in Chrome, Edge and the Claude desktop app's main window. Opened from the repository, the page uses the browser's own speech recognition (Chrome or Edge). The stage can be skipped.
 
 "Repeat" makes him say the sentence again, a little slower. Pressing it a second time in the same task also makes him point at the answer; that task then does not count towards Understands.
 
