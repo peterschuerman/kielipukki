@@ -251,6 +251,7 @@
   // once for the microphone). Opened from the repository, it uses the
   // browser's own speech recognition (Chrome and Edge).
   let dictation = null;
+  let dictationLang = 'fi';   // dropped if the service does not take Finnish by name
   if (window.claude?.use) {
     window.claude.use('dictation').then(d => {
       if (!d) return;
@@ -269,19 +270,28 @@
         heard = '';
         if (text) { $('hint').textContent = `Kuulin: ${text}`; lesson.heard([text]); }
         else if (reason === 'not_granted') $('hint').textContent = 'The microphone is not allowed for this page. You can allow it in the page\'s Permissions menu, or use Skip.';
-        else if (reason === 'unavailable') $('hint').textContent = 'Dictation in Finnish is not available here. Use Skip to go on.';
         else if (reason === 'upstream_error' || reason === 'rate_limited') $('hint').textContent = 'Listening failed. Try again, or use Skip.';
       });
     }).catch(() => {});
+  }
+  function unavailable() {
+    if (dictationLang) {
+      // Finnish by name was refused: try once more with the viewer's default language.
+      dictationLang = null;
+      $('hint').textContent = 'Finnish dictation was refused by name. Press Speak again to try your default dictation language; it may still recognize Finnish. Otherwise use Skip.';
+    } else {
+      dictation = null;
+      $('hint').textContent = 'Dictation is not available here. Use Skip to go on, or run the lessons locally in Chrome (see the README).';
+    }
   }
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   $('mic').onclick = () => {
     if (dictation) {
       if (dictation.active()) { dictation.stop(); return; }
       // Must be called straight from the click, before anything is awaited.
-      dictation.start({ language: 'fi' }).catch(e => {
+      dictation.start(dictationLang ? { language: dictationLang } : {}).catch(e => {
         if (e?.code === 'not_granted') $('hint').textContent = 'The microphone is not allowed for this page. You can allow it in the page\'s Permissions menu, or use Skip.';
-        else if (e?.code === 'unavailable') $('hint').textContent = 'Dictation in Finnish is not available here. Use Skip to go on.';
+        else if (e?.code === 'unavailable') unavailable();
         else if (e?.code !== 'stopped') $('hint').textContent = 'Listening could not start. Try again, or use Skip.';
       });
       return;
